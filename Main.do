@@ -2597,14 +2597,22 @@ save sim_iv, replace
 
 
 
+*************************************+*************************************+***
+*** Base para el Instrumento para el housing rent y amenity shock: 
+*************************************+*************************************+***
 
+/* La variable instrumental en este caso es el valor predicho de cambios en el ratio de población de altas habilidades respecto a bajas habilidades por el tiempo de viaje esperado para la población en total del tract y el valor de una hora extra de trabajo. Esto lo hace para evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. */
 
-
-*** total instrument for housing rent
+/* La diferencia entre el instrumento para housing rent y amenity shock es que en la base de housing rent generan el cambio en el número de personas con altas o bajas habilidades o el total de población para el tract entre 1990 y 2010 mientras que en la base para amenity shock no lo hacen. Esto lo hace más adelante en el do*/
 
 cd $data/temp_files
 u temp, clear
 g a1990=exp( log(impute_share1990))
+
+*Para el año 2010 lo generó sumando el valor imputado de la proporción de población que tienen altas o bajas habilidades  para cada tract respecto al valor para cada MSA, y la diferencia entre la multiplicación del valor de una hora extra de 1990 por el tiempo de viaje esperado por un escalar y la misma multiplicación pero con el valor de una hora extra de 1990.
+
+/* El autor explica que el valor de este escalar no importa en el tamaño de los estimadores de los parámetros de interés, así afecte la primera etapa de variables instrumentales.*/
+
 g a2010=exp( log(impute_share1990)+8.934139*val_1990*expected_commute-8.934139*val_2010*expected_commute)
 
 
@@ -2626,6 +2634,11 @@ g sim2010_low=sim2010 if high_skill==0
 
 collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low (sum) count=count1990,by(gisjoin metarea)
 
+preserve
+cd $data/temp_files/iv
+save ingredient_for_iv_amenity, replace
+restore
+
 
 g dln_sim_low=ln(sim2010_low)-ln(sim1990_low)
 g dln_sim_high=ln(sim2010_high)-ln(sim1990_high)
@@ -2639,43 +2652,9 @@ cd $data/temp_files/iv
 save sim_iv_total, replace
 
 
-*** Ingredient for instrument for amenity shock
-
-cd $data/temp_files
-u temp, clear
-
-g a1990=exp( log(impute_share1990))
-g a2010=exp( log(impute_share1990)+8.934139*val_1990*expected_commute-8.934139*val_2010*expected_commute)
-
-sort occ2010 metarea
-by occ2010 metarea: egen sim1990=sum(a1990)
-by occ2010 metarea: egen sim2010=sum(a2010)
-
-replace sim1990=a1990/sim1990
-replace sim2010=a2010/sim2010
-
-replace sim1990=sim1990*count1990
-replace sim2010=sim2010*count1990
-
-cd $data\inter_files\demographic\education
-
-g sim1990_high=sim1990 if high_skill==1
-g sim1990_low=sim1990 if high_skill==0
-
-g sim2010_high=sim2010 if high_skill==1
-g sim2010_low=sim2010 if high_skill==0
-
-collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low,by(gisjoin)
-
-cd $data/temp_files/iv
-
-save ingredient_for_iv_amenity, replace
-
-
-
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Data Prep -  Housing Demand
-*************************************+*************************************+****
+*************************************+*************************************+***
 
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
