@@ -11,7 +11,7 @@
 clear all
 cls
 global data= "/Users/linagomez/Documents/Stata/Economia_Urbana/Revision_Codigo_Lina/data"
-
+global table= "/Users/linagomez/Documents/Stata/Economia_Urbana/Revision_Codigo_Lina/"
 
 ********************************************************************************
 **# Various Measures
@@ -3895,11 +3895,23 @@ cd $data/temp_files
 
 u data_matlab, clear
 
-reghdfe d_restaurant dratio, absorb(metarea) vce(robust)
-reghdfe d_grocery dratio, absorb(metarea) vce(robust)
-reghdfe d_gym dratio, absorb(metarea) vce(robust)
-reghdfe d_personal dratio, absorb(metarea) vce(robust)
+*Se etiquetan a las variables:
+label variable d_restaurant "Restaurantes"
+label variable d_grocery "Tiendas de barrio"
+label variable d_gym "Gimnasios"
+label variable d_personal "Servicios personales"
+label variable dratio "Cambio Ratio"
 
+*Se estiman los resultados y se adicionan a la tabla en formato .tex:
+cd $table/table
+reghdfe d_restaurant dratio, absorb(metarea) vce(robust)
+outreg2 using Tabla_1, tex label replace noaster title("Tabla 1. Relación entre el Ratio de Calificación Local y la Oferta de Amenidades locales por cada 1,000 residentes") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
+reghdfe d_grocery dratio, absorb(metarea) vce(robust)
+outreg2 using Tabla_1, tex label append noaster nocons
+reghdfe d_gym dratio, absorb(metarea) vce(robust)
+outreg2 using Tabla_1, tex label append noaster nocons 
+reghdfe d_personal dratio, absorb(metarea) vce(robust)
+outreg2 using Tabla_1, tex label append noaster nocons
 
 *****************************
 * Column (1-4) of Table 6
@@ -3908,9 +3920,13 @@ reghdfe d_personal dratio, absorb(metarea) vce(robust)
 *************************************+*************************************+**
 
 ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label replace noaster title("Tabla 6. Estimación para la Oferta de Amenidades") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
 ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
 ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
 ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
 
 *************************************+*************************************+**
 /* Data Cleaning Crime Amenity*/
@@ -3960,6 +3976,11 @@ collapse (sum) impute2010_high impute2010_low impute1990_high impute1990_low pop
 /* Tabla 1 y 6 */
 *************************************+*************************************+**
 
+
+/* Se generan los ratios para la variable independiente y el instrumento del cambio del ratio de los altamente calificados respecto a los no calificados  */
+*************************************+*************************************+**
+
+
 g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
 g dratio_sim=ln(sim2010_high/sim2010_low)- ln(sim1990_high/sim1990_low)
 g dviolent=ln( crime_violent_rate2010+0.1)-ln( crime_violent_rate1990+0.1)
@@ -3973,22 +3994,38 @@ g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
 * Column (5-6) of Table 1
 *****************************
 
+/* El autor está realizando una regresión entre el cambio en la tasa de crimen y el cambio en la tasa de crimen de propiedad entre 2010 y 1990 respecto al cambio en el ratio de la población con calificación alta o baja ponderando por la población de 1990 si la variable instrumental es diferente a missing. Se utiliza efectos fijos de área metropolitana y errores estándares robustos.  */
+*************************************+*************************************+**
+
+*Se etiquetan a las variables:
+label variable dproperty "Crimen de Propiedad"
+label variable dviolent "Crimen Violento"
+label variable dratio "Cambio Ratio"
+
+cd $table/table
 reghdfe dproperty dratio [w=population] if dln_sim_high!=., absorb(metarea) vce(robust)
+outreg2 using Tabla_1, tex label append noaster nocons addtext(Sí)
 reghdfe dviolent dratio [w=population] if dln_sim_high!=., absorb(metarea)  vce(robust)
+outreg2 using Tabla_1, tex label append noaster nocons addtext(Sí)
+
 
 *****************************
 * Column (5-6) of Table 6
 *****************************
 
+/*En este caso el autor está realizando la misma estimación pero instrumentando la variable independiente por el cambio en el tiempo de la población con altas habilidades y el cambio en el tiempo de la población con bajas habilidades. Pondera, utiliza los mismos efectos fijos y errores estándares robustos por si hay heterocedasticidad de los errores. */
 
 ivreghdfe dproperty (dratio=dln_sim_high dln_sim_low) [w=population] , absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
 ivreghdfe dviolent (dratio=dln_sim_high dln_sim_low) [w=population], absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
   
-
-
-*************************************+*************************************+****
+/* Se adiciona el código para exportar las tablas. Se observa que el autor hace las estimaciones con los comandos reghdfe y ivreghdfe. Con este comando no es posible hacer estimaciones por el método generalizado de momentos que es 
+el método que el afirma utilizar en su paper. Esto puede ser porque el método de momentos en algunos casos es similar a una estimación por mínimos cuadrados ordinarios. Sin embargo, es importante que el autor aclare esto en su apéndice. La documentación del comando ivreghdfe no es lo suficientemente completa. */
+    
+*************************************+*************************************+***
 **# Output -  Motivation
-*************************************+*************************************+****
+*************************************+*************************************+***
 
 
 clear all
