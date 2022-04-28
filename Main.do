@@ -1224,13 +1224,13 @@ g travel_time_share=travel_time*share_tilda
 
 collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 sort expected
 
 save commute_`num', replace
 }
 
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -1294,7 +1294,7 @@ foreach num of numlist 30 120 130 150 205 230 310
 append using commute_`num'_temp
 
 }
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 save commute, replace
 
 
@@ -1407,7 +1407,7 @@ collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 sort expected
 
 ren expected_commute total_commute
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 save commute_total`num', replace
 }
 
@@ -1517,7 +1517,7 @@ collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 sort expected
 
 ren expected_commute total_commute
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 
 save commute_total`num', replace
 }
@@ -2422,26 +2422,28 @@ sort gisjoin
 
 save rent, replace
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Data Prep -  IV 1990-2010 main
-*************************************+*************************************+****
+*************************************+*************************************+***
+
+*************************************+*************************************+***
+*** Merge de varias bases de datos: 
+*************************************+*************************************+***
 
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
-
-** Commute time data
-cd $data/temp_files\commute
+** Se usa los datos de tiempo de viaje:
+cd $data/temp_files/commute
 
 u commute, clear
 
-cd $data/geographic\
-
+** Se junta con la base que cruza la definición de tract1990 con la metarea:
+cd $data/geographic
 merge m:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
+*** Se junta con la base que almacena el long hour premium para cada ocupación:
 cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
@@ -2449,169 +2451,153 @@ drop _merge
 
 drop se_1990 se_2010
 
+*** Se generan grupos de acuerdo con la ocupación:
+	
+	/* Número_de_la_observación Definición
+	* 1: MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
+	* 2: BUSINESS OPERATIONS SPECIALISTS
+	* 3: FINANCIAL SPECIALISTS
+	* 4: COMPUTER AND MATHEMATICAL
+	* 5: ARCHITECTURE AND ENGINEERING
+	* 6: TECHNICIANS
+	* 7: LIFE, PHYSICAL, AND SOCIAL SCIENCE
+	* 8: COMMUNITY AND SOCIAL SERVICES
+	* 9: LEGAL
+	* 10: EDUCATION, TRAINING, AND LIBRARY
+	* 11: ARTS, DESIGN, ENTERTAINMENT, SPORTS, AND MEDIA
+	* 12: HEALTHCARE PRACTITIONERS AND TECHNICAL
+	* 13: HEALTHCARE SUPPORT
+	* 14: PROTECTIVE SERVICE
+	* 15: FOOD PREPARATION AND SERVING
+	* 16: BUILDING AND GROUNDS CLEANING AND MAINTENANCE
+	* 17: PERSONAL CARE AND SERVICE
+	* 18: SALES AND RELATED
+	* 19: OFFICE AND ADMINISTRATIVE SUPPORT
+	* 20: FARMING, FISHING, AND FORESTRY
+	* 21: CONSTRUCTION
+	* 22: EXTRACTION
+	* 23: INSTALLATION, MAINTENANCE, AND REPAIR
+	* 24: PRODUCTION
+	* 25: TRANSPORTATION AND MATERIAL MOVING
+	*/
+	
+	g occ_group=1 if occ2010>=10 & occ2010<=430
+	replace occ_group=2 if occ2010>=500 & occ2010<=730
+	replace occ_group=3 if occ2010>=800 & occ2010<=950
+	replace occ_group=4 if occ2010>=1000 & occ2010<=1240
+	replace occ_group=5 if occ2010>=1300 & occ2010<=1540
+	replace occ_group=6 if occ2010>=1550 & occ2010<=1560
+	replace occ_group=7 if occ2010>=1600 & occ2010<=1980
+	replace occ_group=8 if occ2010>=2000 & occ2010<=2060
+	replace occ_group=9 if occ2010>=2100 & occ2010<=2150
+	replace occ_group=10 if occ2010>=2200 & occ2010<=2550
+	replace occ_group=11 if occ2010>=2600 & occ2010<=2920
+	replace occ_group=12 if occ2010>=3000 & occ2010<=3540
+	replace occ_group=13 if occ2010>=3600 & occ2010<=3650
+	replace occ_group=14 if occ2010>=3700 & occ2010<=3950
+	replace occ_group=15 if occ2010>=4000 & occ2010<=4150
+	replace occ_group=16 if occ2010>=4200 & occ2010<=4250
+	replace occ_group=17 if occ2010>=4300 & occ2010<=4650
+	replace occ_group=18 if occ2010>=4700 & occ2010<=4965
+	replace occ_group=19 if occ2010>=5000 & occ2010<=5940
+	replace occ_group=20 if occ2010>=6005 & occ2010<=6130
+	replace occ_group=21 if occ2010>=6200 & occ2010<=6765
+	replace occ_group=22 if occ2010>=6800 & occ2010<=6940
+	replace occ_group=23 if occ2010>=7000 & occ2010<=7630
+	replace occ_group=24 if occ2010>=7700 & occ2010<=8965
+	replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-* MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
-g occ_group=1 if occ2010>=10 & occ2010<=430
-* BUSINESS OPERATIONS SPECIALISTS
-replace occ_group=2 if occ2010>=500 & occ2010<=730
-* FINANCIAL SPECIALISTS
-replace occ_group=3 if occ2010>=800 & occ2010<=950
-* COMPUTER AND MATHEMATICAL
-replace occ_group=4 if occ2010>=1000 & occ2010<=1240
-* ARCHITECTURE AND ENGINEERING
-replace occ_group=5 if occ2010>=1300 & occ2010<=1540
-* TECHNICIANS
-replace occ_group=6 if occ2010>=1550 & occ2010<=1560
-* LIFE, PHYSICAL, AND SOCIAL SCIENCE
-replace occ_group=7 if occ2010>=1600 & occ2010<=1980
-* COMMUNITY AND SOCIAL SERVICES
-replace occ_group=8 if occ2010>=2000 & occ2010<=2060
-* LEGAL
-replace occ_group=9 if occ2010>=2100 & occ2010<=2150
-* EDUCATION, TRAINING, AND LIBRARY
-replace occ_group=10 if occ2010>=2200 & occ2010<=2550
-* ARTS, DESIGN, ENTERTAINMENT, SPORTS, AND MEDIA
-replace occ_group=11 if occ2010>=2600 & occ2010<=2920
-* HEALTHCARE PRACTITIONERS AND TECHNICAL
-replace occ_group=12 if occ2010>=3000 & occ2010<=3540
-* HEALTHCARE SUPPORT
-replace occ_group=13 if occ2010>=3600 & occ2010<=3650
-* PROTECTIVE SERVICE
-replace occ_group=14 if occ2010>=3700 & occ2010<=3950
-* FOOD PREPARATION AND SERVING
-replace occ_group=15 if occ2010>=4000 & occ2010<=4150
-* BUILDING AND GROUNDS CLEANING AND MAINTENANCE
-replace occ_group=16 if occ2010>=4200 & occ2010<=4250
-* PERSONAL CARE AND SERVICE
-replace occ_group=17 if occ2010>=4300 & occ2010<=4650
-* SALES AND RELATED
-replace occ_group=18 if occ2010>=4700 & occ2010<=4965
-* OFFICE AND ADMINISTRATIVE SUPPORT
-replace occ_group=19 if occ2010>=5000 & occ2010<=5940
-* FARMING, FISHING, AND FORESTRY
-replace occ_group=20 if occ2010>=6005 & occ2010<=6130
-* CONSTRUCTION
-replace occ_group=21 if occ2010>=6200 & occ2010<=6765
-* EXTRACTION
-replace occ_group=22 if occ2010>=6800 & occ2010<=6940
-* INSTALLATION, MAINTENANCE, AND REPAIR
-replace occ_group=23 if occ2010>=7000 & occ2010<=7630
-* PRODUCTION
-replace occ_group=24 if occ2010>=7700 & occ2010<=8965
-* TRANSPORTATION AND MATERIAL MOVING
-replace occ_group=25 if occ2010>=9000 & occ2010<=9750
-
-
+*** Se junta con la base que contiene el número de personas en cada ocupación por área metropolitana:
 cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
-
 drop if count1990==.
 
+*** Se junta con la base que contiene la designación de si la ocupación es de alta o baja habilidad: 
 cd $data/temp_files
 merge m:1 occ2010 using high_skill
 keep if _merge==3
 drop _merge
 
+*** Se junta con la probabilidad de ocupación de los trabajadores de la ocupación para cada MSA:
 cd $data/temp_files
-
 merge m:1 occ2010 gisjoin using tract_impute_share
 keep if _merge==3
 drop _merge
-
 drop count2000 
 cd $data/temp_files
 save temp, replace
 
-***
+*************************************+*************************************+***
+*** Instrumento para el cambio del ratio de habilidad: 
+*************************************+*************************************+***
 
-foreach num of numlist 1(1)21 {
-cd $data/temp_files
-u temp if occ_group!=`num', clear
-
-g a1990=exp( log(impute_share1990))
-g a2010=exp( log(impute_share1990)+7.204779*val_1990*expected_commute-7.204779*val_2010*expected_commute)
-
-sort occ2010 metarea
-by occ2010 metarea: egen sim1990=sum(a1990)
-by occ2010 metarea: egen sim2010=sum(a2010)
-
-replace sim1990=a1990/sim1990
-replace sim2010=a2010/sim2010
-
-replace sim1990=sim1990*count1990
-replace sim2010=sim2010*count1990
-
-cd $data\inter_files\demographic\education
-
-g sim1990_high=sim1990 if high_skill==1
-g sim1990_low=sim1990 if high_skill==0
-
-g sim2010_high=sim2010 if high_skill==1
-g sim2010_low=sim2010 if high_skill==0
-
-collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low (sum) count=count1990,by(gisjoin metarea)
+/* La variable instrumental es el valor predicho de cambios en el ratio de población de altas habilidades respecto a bajas habilidades por el tiempo de viaje esperado para cada ocupación y el valor de una hora extra de trabajo. Esto lo hace para evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. */
 
 
-g dln_sim_low=ln(sim2010_low)-ln(sim1990_low)
-g dln_sim_high=ln(sim2010_high)-ln(sim1990_high)
-g dln_sim=ln(sim2010_high+sim2010_low)-ln(sim1990_high+sim1990_low)
+local x 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 23 24 25
+foreach num of local x{
+	cd $data/temp_files
+	u temp if occ_group!=`num', clear
+	
+*Se genera una variable que sea la proporción de población por 		
+*ocupación para cada tract respecto al MSA para cada año:
 
-keep gisjoin dln_sim_low dln_sim_high dln_sim
-g occ_group=`num'
-cd $data/temp_files/iv
-save sim_iv`num', replace
+
+*Para el año 1990 el autor utiliza el valor imputado de la proporción de población por ocupación para cada tract que tienen altas o bajas habilidades respecto al valor para cada MSA. Este valor se imputó multiplicando el número de personas en cada grupo de ocupación por la proporción de personas que trabajan en cada ocupación dentro del grupo de ocupación al que pertenecen (ver data prep location choice).
+	g a1990=exp( log(impute_share1990))
+	
+*Para el año 2010 lo generó sumando el valor imputado de la proporción de población que tienen altas o bajas habilidades por ocupación para cada tract respecto al valor para cada MSA, y la diferencia entre la multiplicación del valor de una hora extra de 1990 por el tiempo de viaje esperado por un escalar y la misma multiplicación pero con el valor de una hora extra de 1990.
+
+/* No se tiene certeza de por qué el escalar toma este valor ya que en ninguna de las regresiones del data prep aparece este valor. Se sugiere al autor complementar el do-file explicando porque toma este valor. */
+
+	g a2010=exp( log(impute_share1990)+7.204779*val_1990*expected_commute-7.204779*val_2010*expected_commute)
+
+	sort occ2010 metarea
+
+*Se suman los valores simulados para ambos años de acuerdo con el área metropolitana y la ocupación. Esto para encontrar la proporción de población por ocupación para cada MSA:
+	by occ2010 metarea: egen sim1990=sum(a1990)
+	by occ2010 metarea: egen sim2010=sum(a2010)
+
+	
+*Se saca la proporción de población por ocupación para cada tract respecto a la proporción de MSA. Se multiplica por el número de personas que trabajan en cada ocupación para evaluar cual es el número de personas que trabajan en una ocupación para cada tract. Esto lo hace para el total de población del tract, altas habilidades y bajas habilidades:
+	replace sim1990=a1990/sim1990
+	replace sim2010=a2010/sim2010
+
+	replace sim1990=sim1990*count1990
+	replace sim2010=sim2010*count1990
+
+	g sim1990_high=sim1990 if high_skill==1
+	g sim1990_low=sim1990 if high_skill==0
+
+	g sim2010_high=sim2010 if high_skill==1
+	g sim2010_low=sim2010 if high_skill==0
+
+	collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low (sum) count=count1990,by(gisjoin metarea)
+
+*Se genera el cambio entre ambos periodos de tiempo para altas habilidades, bajas habilidades o la población total del tract:
+	g dln_sim_low=ln(sim2010_low)-ln(sim1990_low)
+	g dln_sim_high=ln(sim2010_high)-ln(sim1990_high)
+	g dln_sim=ln(sim2010_high+sim2010_low)-ln(sim1990_high+sim1990_low)
+
+	keep gisjoin dln_sim_low dln_sim_high dln_sim
+	g occ_group=`num'
+	cd $data/temp_files/iv
+	save sim_iv`num', replace
 }
 
-
-foreach num of numlist 23(1)25 {
-cd $data/temp_files
-u temp if occ_group!=`num', clear
-
-g a1990=exp( log(impute_share1990))
-g a2010=exp( log(impute_share1990)+7.204779*val_1990*expected_commute-7.204779*val_2010*expected_commute)
-
-
-sort occ2010 metarea
-by occ2010 metarea: egen sim1990=sum(a1990)
-by occ2010 metarea: egen sim2010=sum(a2010)
-
-replace sim1990=a1990/sim1990
-replace sim2010=a2010/sim2010
-
-replace sim1990=sim1990*count1990
-replace sim2010=sim2010*count1990
-
-g sim1990_high=sim1990 if high_skill==1
-g sim1990_low=sim1990 if high_skill==0
-
-g sim2010_high=sim2010 if high_skill==1
-g sim2010_low=sim2010 if high_skill==0
-
-collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low (sum) count=count1990,by(gisjoin metarea)
-
-g dln_sim_low=ln(sim2010_low)-ln(sim1990_low)
-g dln_sim_high=ln(sim2010_high)-ln(sim1990_high)
-g dln_sim=ln(sim2010_high+sim2010_low)-ln(sim1990_high+sim1990_low)
-
-keep gisjoin dln_sim_low dln_sim_high dln_sim
-g occ_group=`num'
-cd $data/temp_files/iv
-save sim_iv`num', replace
-}
-
-
+*Se almacena en una nueva base de datos:
 clear all
-foreach num of numlist 1(1)21 {
+local x 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 23 24 25
+foreach num of local x{
 append using sim_iv`num'
 }
-
-foreach num of numlist 23(1)25 {
-append using sim_iv`num'
-}
-
 save sim_iv, replace
+
+
+
+
 
 
 *** total instrument for housing rent
@@ -3947,13 +3933,6 @@ ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
 ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
 ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
 
-
-
-
-
-
-
-
 *************************************+*************************************+**
 /* Data Cleaning Crime Amenity*/
 *************************************+*************************************+**
@@ -3997,6 +3976,11 @@ drop _merge
 
 collapse (sum) impute2010_high impute2010_low impute1990_high impute1990_low population population2010 sim1990_high sim1990_low sim2010_high sim2010_low (mean) crime_violent_rate* crime_property_rate* , by(gisjoin_muni metarea)
 
+
+*************************************+*************************************+**
+/* Tabla 1 y 6 */
+*************************************+*************************************+**
+
 g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
 g dratio_sim=ln(sim2010_high/sim2010_low)- ln(sim1990_high/sim1990_low)
 g dviolent=ln( crime_violent_rate2010+0.1)-ln( crime_violent_rate1990+0.1)
@@ -4006,10 +3990,18 @@ g dproperty=ln( crime_property_rate2010+0.1)-ln( crime_property_rate1990+0.1)
 g dln_sim_high=ln(sim2010_high)- ln(sim1990_high)
 g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
 
-*** Column 5-6 of Table 1
+*****************************
+* Column (5-6) of Table 1
+*****************************
+
 reghdfe dproperty dratio [w=population] if dln_sim_high!=., absorb(metarea) vce(robust)
 reghdfe dviolent dratio [w=population] if dln_sim_high!=., absorb(metarea)  vce(robust)
-*** Column 5-6 of Table 6
+
+*****************************
+* Column (5-6) of Table 6
+*****************************
+
+
 ivreghdfe dproperty (dratio=dln_sim_high dln_sim_low) [w=population] , absorb(metarea) robust
 ivreghdfe dviolent (dratio=dln_sim_high dln_sim_low) [w=population], absorb(metarea) robust
   
@@ -5185,7 +5177,7 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 ** Commute time data
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 
 merge 1:m gisjoin occ2010 using commute
 keep if _merge==3
@@ -5270,7 +5262,7 @@ replace occ_group=24 if occ2010>=7700 & occ2010<=8965
 * TRANSPORTATION AND MATERIAL MOVING
 replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 merge m:1 gisjoin occ_group using commute_total
 drop _merge
 
@@ -5413,7 +5405,7 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 ** Commute time data
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 
 merge 1:m gisjoin occ2010 using commute
 keep if _merge==3
@@ -5498,7 +5490,7 @@ replace occ_group=24 if occ2010>=7700 & occ2010<=8965
 * TRANSPORTATION AND MATERIAL MOVING
 replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-cd $data/temp_files\commute
+cd $data/temp_files/commute
 merge m:1 gisjoin occ_group using commute_total
 drop _merge
 
