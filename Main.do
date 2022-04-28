@@ -1,13 +1,22 @@
+*****************************************************
+** Universidad de los Andes - Facultad de Economía **
+** 			      Economía Urbana           	   **
+**												   **
+** 		      Lina María Gómez García              **
+** 			   						               **
+**   Improvements to the Code Needed to Reproduce  **
+**                 Su (2022) Paper                 **
+*****************************************************
 
-
+clear all
+cls
+global data= "/Users/linagomez/Documents/Stata/Economia_Urbana/Revision_Codigo_Lina/data"
 
 
 ********************************************************************************
 **# Various Measures
 ********************************************************************************
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** Income measure for housing demand measure
 
@@ -42,7 +51,7 @@ g count2000=count if year==2000
 g count2010=count if year==2010
 
 collapse (mean) count1990 count2000 count2010 inc_mean1990 inc_mean2000 inc_mean2010 wage_real1990 wage_real2000 wage_real2010  [w=perwt], by(occ2010)
-cd $data\temp_files
+cd $data/temp_files
 save inc_occ_1990_2000_2010, replace
 
 
@@ -66,7 +75,7 @@ g count2010=count if year==2010
 
 collapse (mean) count1990 count2000 count2010 [w=perwt], by(metarea occ2010)
 
-cd $data\temp_files
+cd $data/temp_files
 
 save count_metarea, replace
 ******************************
@@ -91,7 +100,7 @@ collapse (count) count1990 count2010, by(occ2010)
 replace count1990=. if count1990==0
 replace count2010=. if count2010==0
 
-cd $data\temp_files
+cd $data/temp_files
 
 save occ2010_count, replace
 
@@ -118,7 +127,7 @@ collapse (count) count1990 count2010, by(occ2010)
 replace count1990=. if count1990==0
 replace count2010=. if count2010==0
 
-cd $data\temp_files
+cd $data/temp_files
 
 save occ2010_count_male, replace
 
@@ -155,7 +164,7 @@ drop if inctot_real1990==.
 drop if inctot_real2010==.
 drop count*
 
-cd $data\temp_files
+cd $data/temp_files
 save val_time_weekly_earnings_total, replace
 
 
@@ -241,7 +250,7 @@ replace se_2010=_se[hours2010] if occ2010==`num'
 collapse (firstnm) val_1990 se_1990 val_2000 se_2000 val_2010 se_2010, by(occ2010)
 
 
-cd $data\temp_files
+cd $data/temp_files
 
 save val_40_60_total_1990_2000_2010, replace
 
@@ -258,7 +267,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 cd $data\ipums_micro
 use 1990_2000_2010_temp, clear
 
-cd $data\temp_files
+cd $data/temp_files
 
 collapse (sum) pop=perwt, by(year ind1990 occ2010)
 save ind1990_2010, replace
@@ -289,7 +298,7 @@ save occ_share_perind2010, replace
 ******************************************
 ** decompose the cic-NAICS crosswalk
 
-cd $data\zbp
+cd $data/zbp
 import excel cic1990_naics97.xlsx, sheet("Sheet1") firstrow clear
 tostring NAICS, g(naics)
 unique naics
@@ -302,7 +311,7 @@ ren Census2000CategoryTitle naics_descr
 keep ind1990 naics  naics_descr
 g digit=length(naics)
 
-cd $data\temp_files
+cd $data/temp_files
 save cic1990_naics97, replace
 
 u cic1990_naics97, clear
@@ -333,14 +342,14 @@ save cic1990_naics97_2digit, replace
 ******************************************
 ** decompose the cic-sic crosswalk
 
-cd $data\zbp
+cd $data/zbp
 import excel cic_sic_crosswalk.xlsx, sheet("Sheet1") firstrow allstring clear
 destring cic_code, g(ind1990)
 drop cic_code
 
 g digit=length(sic)
 
-cd $data\temp_files
+cd $data/temp_files
 save cic_sic_crosswalk, replace
 
 u cic_sic_crosswalk, clear
@@ -364,7 +373,7 @@ save cic_sic_crosswalk2digit, replace
 
 
 
-cd $data\zbp
+cd $data/zbp
 u zip94detail, clear
 
 g n1_4_num=2.5*n1_4
@@ -385,7 +394,7 @@ drop if lastdigit=="\"
 
 g sic4=sic
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 sic4 using cic_sic_crosswalk4digit
 ren _merge _merge_4digit
 ren ind1990 ind1990_4digit
@@ -410,10 +419,10 @@ drop if zip==.
 
 collapse (sum) est_num, by(zip ind1990)
 
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 keep if zip<20000
 joinby ind1990 using occ_share_perind1990
@@ -462,7 +471,7 @@ save occ_emp_1994, replace
 
 
 ***2000
-cd $data\zbp
+cd $data/zbp
 u zip00detail, clear
 
 g n1_4_num=2.5*n1_4
@@ -481,7 +490,7 @@ drop if lastdigit=="-"
 drop lastdigit
 
 sort naics
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 naics using cic1990_naics97_6digit
 ren _merge _merge_6digit
 ren ind1990 ind1990_6digit
@@ -570,7 +579,7 @@ g year=2000
 save occ_emp_2000, replace
 
 ***2010
-cd $data\zbp
+cd $data/zbp
 u zip10detail, clear
 
 g n1_4_num=2.5*n1_4
@@ -589,7 +598,7 @@ drop if lastdigit=="-"
 drop lastdigit
 
 sort naics
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 naics using cic1990_naics97_6digit
 ren _merge _merge_6digit
 ren ind1990 ind1990_6digit
@@ -682,14 +691,14 @@ save occ_emp_2010, replace
 
 
 *** generate zip level employment share among its respective METAREA
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_1994, clear
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 zip using zip1990_metarea
 keep if _merge==3
 drop _merge
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 collapse (sum) est_num_total=est_num, by(occ2010 metarea)
@@ -702,14 +711,14 @@ keep share zip occ2010 metarea
 save occ_emp_share_1994, replace
 
 **2000
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_2000, clear
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 zip using zip2000_metarea
 keep if _merge==3
 drop _merge
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 collapse (sum) est_num_total=est_num, by(occ2010 metarea)
@@ -722,14 +731,14 @@ keep share zip occ2010 metarea
 save occ_emp_share_2000, replace
 
 ** 2010
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_2010, clear
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 zip using zip2010_metarea
 keep if _merge==3
 drop _merge
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 collapse (sum) est_num_total=est_num, by(occ2010 metarea)
@@ -819,13 +828,13 @@ estimates store speed_results
 
 ** Get the land area for each census tract
 clear
-cd $data\geographic
+cd $data/geographic
 import delimited tract1990_area.csv, varname(1) clear 
 
 keep gisjoin area_sm
 ren area_sm area
 
-cd $data\geographic
+cd $data/geographic
 
 sort gisjoin 
 save area_sqmile, replace
@@ -837,7 +846,7 @@ import delimited nhgis0031_ds123_1990_tract.csv, clear
 keep gisjoin e4u001
 ren e4u001 median_income
 sort gisjoin
-cd $data\temp_files
+cd $data/temp_files
 save median_income1990, replace
 
 *** Get the percentage of working population
@@ -847,7 +856,7 @@ import delimited nhgis0016_ds123_1990_tract.csv, clear
 egen working_pop=rowtotal(e4i001 e4i002 e4i005 e4i006)
 keep gisjoin working_pop
 
-cd $data\temp_files
+cd $data/temp_files
 merge 1:1 gisjoin using population1990
 drop _merge
 g share_working=working_pop/population
@@ -861,9 +870,9 @@ save working_pop1990, replace
 
 
 *** Get the population density
-cd $data\temp_files
+cd $data/temp_files
 u population1990, clear
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using area_sqmile
 keep if _merge==3
 drop _merge
@@ -873,37 +882,37 @@ drop area
 ren area_num area
 
 g density=population/area
-cd $data\geographic
+cd $data/geographic
 keep gisjoin density
 sort gisjoin
 save density, replace
 
 *** Create spatial data at census tract level
-cd $data\geographic
+cd $data/geographic
 
 u density, clear
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 gisjoin using working_pop1990
 keep if _merge==3
 drop _merge
-cd $data\temp_files
+cd $data/temp_files
 merge 1:1 gisjoin using median_income1990
 keep if _merge==3
 drop _merge
 
 sort gisjoin
-cd $data\temp_files
+cd $data/temp_files
 save tract1990_char, replace
 
 
 ** create average char within 2 miles for each census tract
-cd $data\geographic
+cd $data/geographic
 
 u tract1990_tract1990_2mi, clear
 
-cd $data\temp_files
+cd $data/temp_files
 
 ren gisjoin2 gisjoin
 
@@ -912,23 +921,23 @@ keep if _merge==3
 drop _merge
 ren gisjoin gisjoin2
 ren gisjoin1 gisjoin
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u tract1990_char, clear
 g gisjoin2=gisjoin
 append using temp
 
 collapse density share_working median_income, by(gisjoin)
-cd $data\temp_files
+cd $data/temp_files
 save tract1990_char_2mi, replace
 
 ** Create average char within 2 miles for each zip code
-cd $data\geographic
+cd $data/geographic
 import delimited zip1990_tract1990_nearest.csv, varnames(1) clear
 ren in_fid fid
-cd $data\geographic
+cd $data/geographic
 merge m:1 fid using zip1990
 keep if _merge==3
 drop _merge
@@ -946,7 +955,7 @@ append using tract1990_zip1990_2mi
 duplicates drop gisjoin zip, force
 *** finished with the crosswalk, now merge with characteristics file
 
-cd $data\temp_files
+cd $data/temp_files
 
 sort zip gisjoin
 
@@ -959,9 +968,9 @@ save zip1990_char_2mi, replace
 
 
 
-cd $data\geographic
+cd $data/geographic
 import delimited tract1990_zip1990_leftover.csv, varnames(1) clear 
-cd $data\geographic
+cd $data/geographic
 ren input_fid fid
 merge m:1 fid using tract1990
 
@@ -984,13 +993,13 @@ replace distance=distance
 
 replace distance=distance*1.6
 g time=3600*distance/(35*1609.34)
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 *** rank>=51
-cd $data\geographic
+cd $data/geographic
 import delimited tract1990_zip1990_leftover_51.csv, varnames(1) clear 
-cd $data\geographic
+cd $data/geographic
 ren input_fid fid
 merge m:1 fid using tract1990
 
@@ -1013,13 +1022,13 @@ replace distance=distance
 
 replace distance=distance*1.6
 g time=3600*distance/(35*1609.34)
-cd $data\temp_files
+cd $data/temp_files
 save temp_51, replace
 
 *** call the travel matrix
 cd $data\travel
 u travel_time, clear
-cd $data\temp_files
+cd $data/temp_files
 merge 1:1 gisjoin zip using temp
 drop if _merge==2
 drop _merge
@@ -1042,7 +1051,7 @@ drop if zip==93562
 
 drop time distance leftover
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using tract1990_char_2mi
 drop if _merge==2
 drop _merge
@@ -1148,16 +1157,16 @@ save travel_time_hat, replace
 clear all
 global data="C:\Users\alen\Documents\Dropbox\paper_folder"
 
-cd $data\temp_files
+cd $data/temp_files
 
 u occ_emp_share_1994, clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_emp_share_temp, replace
 
 
@@ -1190,7 +1199,7 @@ foreach num of numlist  30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_temp, clear
 keep if occ2010==`num'
 drop serial year rank
@@ -1215,13 +1224,13 @@ g travel_time_share=travel_time*share_tilda
 
 collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 sort expected
 
 save commute_`num', replace
 }
 
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -1285,7 +1294,7 @@ foreach num of numlist 30 120 130 150 205 230 310
 append using commute_`num'_temp
 
 }
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 save commute, replace
 
 
@@ -1294,7 +1303,7 @@ save commute, replace
 *** all employment
 
 foreach num of numlist 1(1)21 {
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_1994, clear
 
 * MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
@@ -1352,7 +1361,7 @@ keep if occ_group!=`num'
 
 collapse (sum) est_num, by(zip)
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 zip using zip1990_metarea
 keep if _merge==3
 drop _merge
@@ -1363,7 +1372,7 @@ by metarea: egen est_num_total=sum(est_num)
 g share=est_num/est_num_total
 keep share zip metarea
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 drop _merge
@@ -1398,13 +1407,13 @@ collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 sort expected
 
 ren expected_commute total_commute
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 save commute_total`num', replace
 }
 
 
 foreach num of numlist 23(1)25 {
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_1994, clear
 
 * MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
@@ -1462,7 +1471,7 @@ keep if occ_group!=`num'
 
 collapse (sum) est_num, by(zip)
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 zip using zip1990_metarea
 keep if _merge==3
 drop _merge
@@ -1473,7 +1482,7 @@ by metarea: egen est_num_total=sum(est_num)
 g share=est_num/est_num_total
 keep share zip metarea
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 drop _merge
@@ -1508,7 +1517,7 @@ collapse (sum) expected_commute=travel_time_share, by(gisjoin)
 sort expected
 
 ren expected_commute total_commute
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 
 save commute_total`num', replace
 }
@@ -1548,7 +1557,7 @@ cd $data\ipums_micro
 u 1990_2000_2010_temp if year==1990, clear
 
 *** generate occupation groups that link occ1990 to the nhgis 1990 version occupation group
-cd $data\temp_files
+cd $data/temp_files
 
 g occ1990_group=1 if occ1990>=0 & occ1990<=42
 replace occ1990_group=2 if occ1990>=43 & occ1990<=202
@@ -1565,10 +1574,10 @@ replace occ1990_group=12 if occ1990>=803 & occ1990<=863
 replace occ1990_group=13 if occ1990>=864 & occ1990<=902
 replace occ1990_group=14 if occ1990==999
 
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 **
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 collapse (count) count=serial, by(statefip puma1990 occ2010 occ1990_group)
 drop if occ2010==9920
@@ -1582,12 +1591,12 @@ drop _merge
 g occ_group_share=count/ count_occ
 keep statefip puma1990 occ2010 occ1990_group occ_group_share
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_group_share1990, replace
 
 
 *** generate occ2010- occ1990_group crosswalk (dropping the uncommon linkage) (make sure for each occ2010, I can map it into a unique occ1990_group)
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 g a=1
 collapse (count) count=a, by(occ2010 occ1990_group)
@@ -1642,10 +1651,10 @@ replace occ2000_group=14 if occ>=770 & occ<=896
 ** Transportation
 replace occ2000_group=15 if occ>=900 & occ<=975
 
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 **
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 collapse (count) count=serial, by(statefip puma occ2010 occ2000_group)
 drop if occ2010==9920
@@ -1659,13 +1668,13 @@ drop _merge
 g occ_group_share=count/ count_occ
 keep statefip puma occ2010 occ2000_group occ_group_share
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_group_share2000, replace
 
 
 
 *** generate occ2010- occ2000_group crosswalk (dropping the uncommon linkage)
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 g a=1
 collapse (count) count=a, by(occ2010 occ2000_group)
@@ -1733,11 +1742,11 @@ replace occ2010_group=37 if occ2010>=9510 & occ2010<=9750 & year==2010
 ** unemployed
 replace occ2010_group=38 if occ2010==9920 & year==2010
 
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 **
 
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 collapse (count) count=serial, by(statefip puma occ2010 occ2010_group)
 drop if occ2010==9920
@@ -1751,11 +1760,11 @@ drop _merge
 g occ_group_share=count/ count_occ
 keep statefip puma occ2010 occ2010_group occ_group_share
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_group_share2010, replace
 
 *** generate occ2010- occ1990_group crosswalk (dropping the uncommon linkage)
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 g a=1
 collapse (count) count=a, by(occ2010 occ2010_group)
@@ -1779,7 +1788,7 @@ duplicates tag gisjoin, g(tag)
 drop if tag>0
 drop tag
 sort gisjoin
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using puma1990_tract1990
 keep if _merge==3
 drop _merge
@@ -1796,12 +1805,12 @@ drop e4p* e4q*
 
 sort gisjoin
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_tract1990, replace
 
 *** employment number by census tract
 
-cd $data\temp_files
+cd $data/temp_files
 u occ_tract1990, clear
 ren puma puma1990
 keep gisjoin statefip puma1990 occ1990*
@@ -1815,7 +1824,7 @@ collapse (sum) number_tract=number_occ1990, by(gisjoin statefip puma1990)
 save number_tract1990, replace
 
 *** merge
-cd $data\temp_files
+cd $data/temp_files
 u occ_tract1990, clear
 
 ren puma puma1990
@@ -1826,7 +1835,7 @@ reshape long occ1990_group, i(gisjoin statefip puma1990) j(group)
 ren occ1990_group number_occ1990
 ren group occ1990_group
 
-cd $data\temp_files
+cd $data/temp_files
 joinby statefip puma1990 occ1990_group using occ_group_share1990
 
 g impute=number_occ1990*occ_group_share
@@ -1861,7 +1870,7 @@ import delimited nhgis0014_ds153_2000_tract.csv, clear
 drop year regiona divisiona state statea county countya cty_suba placea tracta trbl_cta blck_grpa trbl_bga c_citya res_onlya trusta aianhha trbl_suba anrca msa_cmsaa pmsaa necmaa urb_areaa cd106a cd108a cd109a zip3a zctaa name
 sort gisjoin
 
-cd $data\geographic
+cd $data/geographic
 merge 1:m gisjoin using tract1990_tract2000
 
 keep if _merge==3
@@ -1906,12 +1915,12 @@ drop h04*
 
 sort gisjoin
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using puma_tract1990
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_tract2000, replace
 
 *** employment number by census tract
@@ -1937,7 +1946,7 @@ reshape long occ2000_group, i(gisjoin statefip puma) j(group)
 ren occ2000_group number_occ2000
 ren group occ2000_group
 
-cd $data\temp_files
+cd $data/temp_files
 joinby statefip puma occ2000_group using occ_group_share2000
 
 g impute=number_occ2000*occ_group_share
@@ -1971,7 +1980,7 @@ import delimited nhgis0013_ds184_20115_2011_tract.csv, clear
 
 drop year regiona divisiona state statea county countya name_m cousuba placea tracta blkgrpa concita aianhha res_onlya trusta aitscea anrca cbsaa csaa metdiva nectaa cnectaa nectadiva uaa cdcurra sldua sldla zcta5a submcda sdelma sdseca sdunia puma5a bttra btbga name_e
 
-cd $data\geographic
+cd $data/geographic
 merge 1:m gisjoin using tract1990_tract2010
 keep if _merge==3
 drop _merge
@@ -2047,16 +2056,16 @@ replace occ2010_group`num'=round(occ2010_group`num')
 
 sort gisjoin
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using puma_tract1990
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_tract2010, replace
 
 *** employment number by census tract
-cd $data\temp_files
+cd $data/temp_files
 u occ_tract2010, clear
 keep gisjoin statefip puma occ2010*
 
@@ -2066,11 +2075,11 @@ ren occ2010_group number_occ2010
 ren group occ2010_group
 
 collapse (sum) number_tract=number_occ2010, by(gisjoin statefip puma)
-cd $data\temp_files
+cd $data/temp_files
 save number_tract2010, replace
 
 *** merge
-cd $data\temp_files
+cd $data/temp_files
 u occ_tract2010, clear
 
 keep gisjoin statefip puma occ2010*
@@ -2100,7 +2109,7 @@ fillin gisjoin occ2010
 
 replace impute=0 if impute==.
 drop _fillin
-cd $data\temp_files
+cd $data/temp_files
 save tract_impute2010, replace
 
 
@@ -2127,25 +2136,25 @@ replace impute2000=0 if impute2000==.
 replace impute2010=0 if impute2010==.
 
 *** Make sure the observations are consistent across three periods
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using occ2010_count
 keep if _merge==3
 drop _merge
 drop count*
-cd $data\geographic
+cd $data/geographic
 merge m:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
 *** Add one to all census tract to smooth over zero observations. 
-cd $data\temp_files
+cd $data/temp_files
 replace impute1990=impute1990+1
 replace impute2000=impute2000+1
 replace impute2010=impute2010+1
 save tract_impute, replace
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute, clear
 collapse (sum) impute_total1990=impute1990 impute_total2000=impute2000 impute_total2010=impute2010, by(occ2010 metarea)
 
@@ -2188,7 +2197,7 @@ collapse college, by(occ2010)
 ren college college_share
 g high_skill=0
 replace high_skill=1 if college_share>=0.4
-cd $data\temp_files
+cd $data/temp_files
 
 save high_skill, replace
 
@@ -2216,7 +2225,7 @@ collapse college, by(occ2010)
 ren college college_share
 g high_skill=0
 replace high_skill=1 if college_share>=0.3
-cd $data\temp_files
+cd $data/temp_files
 
 save high_skill_30, replace
 
@@ -2243,7 +2252,7 @@ collapse college, by(occ2010)
 ren college college_share
 g high_skill=0
 replace high_skill=1 if college_share>=0.5
-cd $data\temp_files
+cd $data/temp_files
 
 save high_skill_50, replace
 
@@ -2255,21 +2264,21 @@ clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using wage_metarea
 keep if _merge==3
 drop _merge
 drop count*
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -2284,11 +2293,11 @@ g impute1990_high=impute_share1990*count1990*high_skill
 g impute1990_low=impute_share1990*count1990*(1-high_skill)
 
 collapse (sum) impute2010_high impute2010_low impute2000_high impute2000_low impute1990_high impute1990_low, by(metarea gisjoin)
-cd $data\temp_files
+cd $data/temp_files
 save skill_pop, replace
 
 
-cd $data\temp_files
+cd $data/temp_files
 u skill_pop, clear
 
 g dratio=ln( impute2010_high/ impute2010_low)-ln( impute1990_high/ impute1990_low)
@@ -2315,7 +2324,7 @@ sort gisjoin
 replace hp=hp*218.056/130.7
 replace rent=rent*218.056/130.7
 
-cd $data\temp_files
+cd $data/temp_files
 save rent1990, replace
 
 cd $data\nhgis
@@ -2327,7 +2336,7 @@ keep gisjoin hp rent
 sort gisjoin
 replace hp=hp*218.056/172.2
 replace rent=rent*218.056/172.2
-cd $data\temp_files
+cd $data/temp_files
 
 save rent2000, replace
 
@@ -2337,19 +2346,19 @@ ren muje001 rent
 ren mu2e001 hp
 keep gisjoin hp rent
 sort gisjoin
-cd $data\temp_files
+cd $data/temp_files
 
 save rent2010, replace
 
 
 
-cd $data\geographic
+cd $data/geographic
 
 u tract1990_tract2010_nearest, clear
 
 ren gisjoin1 gisjoin
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent1990
 keep if _merge==3
 drop _merge
@@ -2364,13 +2373,13 @@ ren rent rent2010
 
 drop gisjoin
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin1 using tract1990_tract2000_nearest
 keep if _merge==3
 drop _merge
 
 ren gisjoin2 gisjoin
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent2000
 keep if _merge==3
 drop _merge 
@@ -2383,12 +2392,12 @@ save rent, replace
 
 
 *** fill in the rent with MSA-level average rent
-cd $data\temp_files
+cd $data/temp_files
 u rent, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
-cd $data\temp_files
+cd $data/temp_files
 keep if _merge==3
 drop _merge
 
@@ -2423,17 +2432,17 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
 ** Commute time data
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 
 u commute, clear
 
-cd $data\geographic\
+cd $data/geographic\
 
 merge m:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -2493,32 +2502,32 @@ replace occ_group=24 if occ2010>=7700 & occ2010<=8965
 replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
 drop if count1990==.
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 gisjoin using tract_impute_share
 keep if _merge==3
 drop _merge
 
 drop count2000 
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 ***
 
 foreach num of numlist 1(1)21 {
-cd $data\temp_files
+cd $data/temp_files
 u temp if occ_group!=`num', clear
 
 g a1990=exp( log(impute_share1990))
@@ -2551,13 +2560,13 @@ g dln_sim=ln(sim2010_high+sim2010_low)-ln(sim1990_high+sim1990_low)
 
 keep gisjoin dln_sim_low dln_sim_high dln_sim
 g occ_group=`num'
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 save sim_iv`num', replace
 }
 
 
 foreach num of numlist 23(1)25 {
-cd $data\temp_files
+cd $data/temp_files
 u temp if occ_group!=`num', clear
 
 g a1990=exp( log(impute_share1990))
@@ -2588,7 +2597,7 @@ g dln_sim=ln(sim2010_high+sim2010_low)-ln(sim1990_high+sim1990_low)
 
 keep gisjoin dln_sim_low dln_sim_high dln_sim
 g occ_group=`num'
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 save sim_iv`num', replace
 }
 
@@ -2607,7 +2616,7 @@ save sim_iv, replace
 
 *** total instrument for housing rent
 
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 g a1990=exp( log(impute_share1990))
 g a2010=exp( log(impute_share1990)+8.934139*val_1990*expected_commute-8.934139*val_2010*expected_commute)
@@ -2640,13 +2649,13 @@ keep gisjoin dln_sim_low dln_sim_high dln_sim
 ren dln_sim_low dln_sim_low_total
 ren dln_sim_high dln_sim_high_total
 ren dln_sim dln_sim_total
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 save sim_iv_total, replace
 
 
 *** Ingredient for instrument for amenity shock
 
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
 g a1990=exp( log(impute_share1990))
@@ -2672,7 +2681,7 @@ g sim2010_low=sim2010 if high_skill==0
 
 collapse (sum) sim1990_high  (sum) sim1990_low (sum) sim2010_high (sum) sim2010_low,by(gisjoin)
 
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 
 save ingredient_for_iv_amenity, replace
 
@@ -2686,16 +2695,16 @@ clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
 drop count* wage_real1990 wage_real2000 wage_real2010
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using wage_metarea
 keep if _merge==3
 drop _merge
@@ -2706,7 +2715,7 @@ g inc2010=impute_share2010*inc_mean2010*count2010
 collapse (sum) inc1990 inc2010, by(gisjoin metarea)
 g ddemand=ln(inc2010)-ln(inc1990)
 keep gisjoin ddemand
-cd $data\temp_files
+cd $data/temp_files
 save ddemand, replace
 
 
@@ -2717,14 +2726,14 @@ save ddemand, replace
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 *** import area (1980 census tract)
-cd $data\geographic
+cd $data/geographic
 import delimited UStract1980.csv, varnames(1) clear 
 
 keep gisjoin area_sm
 destring area_sm, g(area) ignore(",")
 
 keep gisjoin area
-cd $data\geographic
+cd $data/geographic
 save area1980, replace
 
 
@@ -2735,19 +2744,19 @@ ren def001 room
 
 keep gisjoin room
 sort gisjoin
-cd $data\temp_files
+cd $data/temp_files
 save room1980, replace
 
 
 ** Create room density (using 1980 housing data)
-cd $data\geographic
+cd $data/geographic
 u tract1990_tract1980_1mi, clear
 
 ren gisjoin2 gisjoin
-cd $data\geographic
+cd $data/geographic
 merge m:1 gisjoin using area1980
 drop _merge
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room1980
 drop _merge
 
@@ -2768,20 +2777,20 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 ****************
 ** Create value for employment proximity term in 1990
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_1994, clear
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 drop if _merge==2
 drop _merge
 
 drop se_1990 se_2010
-cd $data\temp_files
+cd $data/temp_files
 save occ_emp_share_temp, replace
 
 ***
@@ -2817,10 +2826,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_temp, clear
 keep if occ2010==`num'
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -2840,13 +2849,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term1990_`num', replace
 }
 
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -2914,10 +2923,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files\
+cd $data/temp_files\
 u occ_emp_share_temp, clear
 keep if occ2010==`num'
-cd $data\temp_files\
+cd $data/temp_files\
 
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -2937,11 +2946,11 @@ replace value2000=value2000*share
 collapse (sum) counterfactual_share=value2000, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term2000_`num', replace
 }
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3008,10 +3017,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files\
+cd $data/temp_files\
 u occ_emp_share_temp, clear
 keep if occ2010==`num'
-cd $data\temp_files\
+cd $data/temp_files\
 
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -3031,11 +3040,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term2010_`num', replace
 }
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3075,18 +3084,18 @@ save value_term2010, replace
 
 ****************
 ** Create value for employment proximity term in 1990
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_1994, clear
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill_30
 drop if _merge==2
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_emp_share_temp_30, replace
 
 ***
@@ -3122,10 +3131,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_temp_30, clear
 keep if occ2010==`num'
-cd $data\temp_files
+cd $data/temp_files
 drop if zip==.
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -3145,13 +3154,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term1990_30_`num', replace
 }
 
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3219,10 +3228,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files\
+cd $data/temp_files\
 u occ_emp_share_temp_30, clear
 keep if occ2010==`num'
-cd $data\temp_files\
+cd $data/temp_files\
 drop if zip==.
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -3242,11 +3251,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term2010_30_`num', replace
 }
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3286,19 +3295,19 @@ save value_term2010_high30, replace
 
 ****************
 ** Create value for employment proximity term in 1990
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_1994, clear
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill_50
 drop if _merge==2
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 save occ_emp_share_temp_50, replace
 
 ***
@@ -3334,10 +3343,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files
+cd $data/temp_files
 u occ_emp_share_temp_50, clear
 keep if occ2010==`num'
-cd $data\temp_files
+cd $data/temp_files
 drop if zip==.
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -3357,13 +3366,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term1990_50_`num', replace
 }
 
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3431,10 +3440,10 @@ foreach num of numlist 30 120 130 150 205 230 310
 9510 9600 9610 9620 9640 {;
 
 # delimit cr
-cd $data\temp_files\
+cd $data/temp_files\
 u occ_emp_share_temp_50, clear
 keep if occ2010==`num'
-cd $data\temp_files\
+cd $data/temp_files\
 drop if zip==.
 merge 1:m zip using travel_time_hat
 keep if _merge==3
@@ -3454,11 +3463,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 save value_term2010_50_`num', replace
 }
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3492,58 +3501,90 @@ append using value_term2010_50_`num'
 
 save value_term2010_high50, replace
 
-
-*************************************+*************************************+****
+*************************************+*************************************+**
+*************************************+*************************************+**
 **# Output -  Amenities
-*************************************+*************************************+****
+*************************************+*************************************+**
+*************************************+*************************************+**
 
-  
-clear all
-global data="/Users/linagomez/Documents/Stata/Economía Urbana/132721-V1/data"
+/* Esta base de datos */
+
+
+*************************************+*************************************+**
+/* Data Cleaning */
+*************************************+*************************************+**
+
+
+/*Para cada zip se está sumando el número de establecimientos que tienen un cierto rango de empleados para cada tipo de amenidad descrito posteriormente y se está almacenando en una nueva base de datos. Esto se hace para el año 1994, 2000 y 2010 */
+*************************************+*************************************+**
+
 
 ***** pick out establishments of interest and generate zip code statistics to plot. 
 **1. Restaurant 2. grocery store 3. gym  4. personal care
 
-cd $data\zbp
-*** restaurant
+cd $data/zbp
+
+/* Descripción de las variables: 
+EST Total Number of Establishments
+
+N1_4 Number of Establishments: Employment Size Class: 1-4 Employees
+N5_9 Number of Establishments: Employment Size Class: 5-9 Employees
+N10_19 Number of Establishments: Employment Size Class: 10-19 Employees
+N20_49 Number of Establishments: Employment Size Class: 20-49 Employees
+N50_99 Number of Establishments: Employment Size Class: 50-99 Employees
+N100_249 Number of Establishments: Employment Size Class: 100-249 Employees      
+N250_499 Number of Establishments: Employment Size Class: 250-499 Employees
+N500_999 Number of Establishments: Employment Size Class: 500-999 Employees
+N1000 Number of Establishments: Employment Size Class: 1,000 Or More Employees
+*/
+
+************************
+*** Restaurante:
+************************
+/*
+SIC 5812 - Restaurantes
+SIC 5813 - Bares y Cafeterias
+SIC 54 - Detallistas de alimentación
+SIC 7991 - Physical fitness activities
+SIC 7230 - Beauty Shops
+SIC 7240 - Barber Shops
+SIC 7299 - Servicios personales diversos
+NAICS 722 - Food Services and Drinking Places
+NAICS 445 - Food and Beverage store
+NAICS 71394 - Fitness and recreational sport centers
+NAICS 8121 - Personal care services
+ */
+ 
+
+** 1994: 
 u zip94detail, clear
 keep if sic=="5812" | sic=="5813"
 collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
+cd $data/temp_files
 save restaurant94,replace
 
-cd $data\zbp
-u zip00detail, clear
-g lastthreedigit=substr(naics,4,3)
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lastthreedigit=="---"
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_3=substr(naics,1,3)
-keep if naics_3=="722"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save restaurant00,replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local x 00 10
+foreach num of local x{
+	cd $data/zbp
+	u zip`num'detail, clear
+	g lastthreedigit=substr(naics,4,3)
+	g lasttwodigit=substr(naics,5,2)
+	g lastdigit=substr(naics,6,1)
+	drop if lastthreedigit=="---"
+	drop if lasttwodigit=="--"
+	drop if lastdigit=="-"
+	g naics_3=substr(naics,1,3)
+	keep if naics_3=="722"
+	collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
+	cd $data/temp_files
+	save restaurant`num',replace		
+}
+************************
+*** Grocery Store:
+************************
 
-cd $data\zbp
-u zip10detail, clear
-g lastthreedigit=substr(naics,4,3)
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lastthreedigit=="---"
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_3=substr(naics,1,3)
-keep if naics_3=="722"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save restaurant10,replace
-
-
-*** grocery store 
-
-cd $data\zbp
+cd $data/zbp
 u zip94detail, clear
 g lasttwodigit=substr(sic,3,2)
 g lastdigit=substr(sic,4,1)
@@ -3552,488 +3593,211 @@ drop if lastdigit=="-"
 g sic_2=substr(sic,1,2)
 keep if sic_2=="54"
 collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
+cd $data/temp_files
 save grocery94, replace
 
-cd $data\zbp
-u zip00detail, clear
-g lastthreedigit=substr(naics,4,3)
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lastthreedigit=="---"
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_3=substr(naics,1,3)
-keep if naics_3=="445"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save grocery00, replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local x 00 10
+foreach num of local x{
+	cd $data/zbp
+	u zip`num'detail, clear
+	g lastthreedigit=substr(naics,4,3)
+	g lasttwodigit=substr(naics,5,2)
+	g lastdigit=substr(naics,6,1)
+	drop if lastthreedigit=="---"
+	drop if lasttwodigit=="--"
+	drop if lastdigit=="-"
+	g naics_3=substr(naics,1,3)
+	keep if naics_3=="445"
+	collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
+	cd $data/temp_files
+	save grocery`num',replace		
+}
 
-cd $data\zbp
-u zip10detail, clear
-g lastthreedigit=substr(naics,4,3)
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lastthreedigit=="---"
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_3=substr(naics,1,3)
-keep if naics_3=="445"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save grocery10, replace
+************************
+*** Gym:
+************************
 
 *** gym
-cd $data\zbp
+cd $data/zbp
 u zip94detail, clear
 keep if sic=="7991"
 collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
+cd $data/temp_files
 save gym94, replace
 
-cd $data\zbp
-u zip00detail, clear
-g lastdigit=substr(naics,6,1)
-drop if lastdigit=="-"
-g naics_5=substr(naics,1,5)
-keep if naics_5=="71394"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save gym00, replace
 
-cd $data\zbp
-u zip10detail, clear
-g lastdigit=substr(naics,6,1)
-drop if lastdigit=="-"
-g naics_5=substr(naics,1,5)
-keep if naics_5=="71394"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save gym10, replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local x 00 10
+foreach num of local x{
+	cd $data/zbp
+	u zip`num'detail, clear
+	g lastdigit=substr(naics,6,1)
+	drop if lastdigit=="-"
+	g naics_5=substr(naics,1,5)
+	keep if naics_5=="71394"
+	collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
+	cd $data/temp_files
+	save gym`num',replace		
+}
 
 
-** personal care services
-cd $data\zbp
+***************************
+*** Personal Care Services:
+***************************
+
+
+cd $data/zbp
 u zip94detail, clear
 keep if sic=="7230" | sic=="7240" | sic=="7299"
 collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
+cd $data/temp_files
 save personal94, replace
 
-cd $data\zbp
-u zip00detail, clear
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_4=substr(naics,1,4)
-keep if naics_4=="8121"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save personal00, replace
 
-cd $data\zbp
-u zip10detail, clear
-g lasttwodigit=substr(naics,5,2)
-g lastdigit=substr(naics,6,1)
-drop if lasttwodigit=="--"
-drop if lastdigit=="-"
-g naics_4=substr(naics,1,4)
-keep if naics_4=="8121"
-collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
-cd $data\temp_files
-save personal10, replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local x 00 10
+foreach num of local x{
+		cd $data/zbp
+	u zip`num'detail, clear
+	g lasttwodigit=substr(naics,5,2)
+	g lastdigit=substr(naics,6,1)
+	drop if lasttwodigit=="--"
+	drop if lastdigit=="-"
+	g naics_4=substr(naics,1,4)
+	keep if naics_4=="8121"
+	collapse (sum) est n1_4 n5_9 n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000,by(zip)
+	cd $data/temp_files
+	save personal`num',replace		
+}
 
 
-**** make it tract level
+/* Se está pasando la información de cada base de datos de zip code a census tract considerando establecimientos con alto número de empleados (más de 10) o bajo número de empleados (menos de 10). Se está realizando cogiendo la información del tract que queda 1 milla a la redonda y cogiendo el zip code más cercano al tract */
+*************************************+*************************************+**
 
-*** restaurant
-cd $data\temp_files
-u restaurant94, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip1990_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_restaurant94, replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local i "restaurant grocery personal"
+local j 94 00 10
+foreach x of local i{
+	foreach y of local j{
+		cd $data/temp_files
+		u `x'`y', clear
+		egen est_small= rowtotal(n1_4 n5_9)
+		egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
+		keep zip est_small est_large
+		cd $data/geographic
+		if `y' == 94{
+			merge 1:m zip using tract1990_zip1990_1mi
+		}
+		else if `y' == 00{
+			merge 1:m zip using tract1990_zip2000_1mi	
+		}
+		else if `y' == 10{
+			merge 1:m zip using tract1990_zip2010_1mi
+		}
+		keep if _merge==3
+		drop _merge
+		capture collapse (sum) est_small est_large, by(gisjoin)
+		cd $data/temp_files
+		save tract_`x'`y', replace
 
-cd $data\geographic
-u tract1990_zip1990_nearest, clear
-cd $data\temp_files
-merge m:1 zip using restaurant94
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_restaurant94
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_restaurant94, replace
+		cd $data/geographic
+		if `y' == 94{
+			u tract1990_zip1990_nearest, clear
+		}
+		else if `y' == 00{
+			u tract1990_zip2000_nearest, clear	
+		}
+		else if `y' == 10{
+			u tract1990_zip2010_nearest, clear
+		}
+		cd $data/temp_files
+		merge m:1 zip using `x'`y'
+		egen est_small= rowtotal(n1_4 n5_9)
+		egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
+		keep gisjoin est_small est_large
+		capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
+		merge 1:1 gisjoin using tract_`x'`y'
+		drop _merge
+		replace est_small=est_small_nearest if est_small==.
+		replace est_large=est_large_nearest if est_large==.
+		keep gisjoin est_small est_large
+		drop if gisjoin==""
+		save tract_`x'`y', replace		
+	}	
+}
 
-** 2000
-cd $data\temp_files
-u restaurant00, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2000_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_restaurant00, replace
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local y 94 00 10
+foreach j of local y{
+	cd $data/temp_files
+	display "gym"
+	u gym`j', clear
+	keep zip est
+	cd $data/geographic
+	if `j' == 94{
+		merge 1:m zip using tract1990_zip1990_1mi
+		}
+	else if `j' == 00{
+		merge 1:m zip using tract1990_zip2000_1mi	
+		}
+	else if `j' == 10{
+		merge 1:m zip using tract1990_zip2010_1mi
+		}
+	keep if _merge==3
+	drop _merge
+	capture collapse (sum) est, by(gisjoin)
+	cd $data/temp_files
+	save tract_gym`j', replace
 
-cd $data\geographic
-u tract1990_zip2000_nearest, clear
-cd $data\temp_files
-merge m:1 zip using restaurant00
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_restaurant00
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_restaurant00, replace
+	cd $data/geographic
+	if `j' == 94{
+		u tract1990_zip1990_nearest, clear
+	}
+	else if `j' == 00{
+		u tract1990_zip2000_nearest, clear	
+		}
+	else if `j' == 10{
+		u tract1990_zip2010_nearest, clear
+		}
+	cd $data/temp_files
+	merge m:1 zip using gym`j'
 
-** 2010
-cd $data\temp_files
-u restaurant10, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2010_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_restaurant10, replace
-
-cd $data\geographic
-u tract1990_zip2010_nearest, clear
-cd $data\temp_files
-merge m:1 zip using restaurant10
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_restaurant10
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_restaurant10, replace
-
-
-
-*** grocery
-cd $data\temp_files
-u grocery94, clear
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49)
-egen est_large= rowtotal( n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip1990_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_grocery94, replace
-
-cd $data\geographic
-u tract1990_zip1990_nearest, clear
-cd $data\temp_files
-merge m:1 zip using grocery94
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49)
-egen est_large= rowtotal( n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_grocery94
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_grocery94, replace
-
-** 2000
-cd $data\temp_files
-u grocery00, clear
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49 )
-egen est_large= rowtotal(n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2000_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_grocery00, replace
-
-cd $data\geographic
-u tract1990_zip2000_nearest, clear
-cd $data\temp_files
-merge m:1 zip using grocery00
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49)
-egen est_large= rowtotal( n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_grocery00
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_grocery00, replace
-
-** 2010
-cd $data\temp_files
-u grocery10, clear
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49)
-egen est_large= rowtotal( n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2010_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_grocery10, replace
-
-cd $data\geographic
-u tract1990_zip2010_nearest, clear
-cd $data\temp_files
-merge m:1 zip using grocery10
-egen est_small= rowtotal(n1_4 n5_9 n10_19 n20_49)
-egen est_large= rowtotal( n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_grocery10
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_grocery10, replace
+	keep gisjoin est
+	capture collapse (sum) est_nearest=est, by(gisjoin)
+	merge 1:1 gisjoin using tract_gym`j'
+	drop _merge
+	replace est=est_nearest if est==.
+	keep gisjoin est
+	drop if gisjoin==""
+	save tract_gym`j', replace
+}	
 
 
-*** gym
-cd $data\temp_files
-u gym94, clear
-keep zip est
-cd $data\geographic
-merge 1:m zip using tract1990_zip1990_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est, by(gisjoin)
-cd $data\temp_files
-save tract_gym94, replace
+/* Se están juntando todas las bases que se crearon en una base para cada tipo de servicio: */
+*************************************+*************************************+**
 
-cd $data\geographic
-u tract1990_zip1990_nearest, clear
-cd $data\temp_files
-merge m:1 zip using gym94
+/* Se genera un loop para optimizar el proceso que se estaba haciendo anteriormente */
+local i "restaurant grocery personal"
+foreach x of local i{
+	display "`x'"
+	cd $data/temp_files
+	u tract_`x'94, clear
+	ren est_small est_small_`x'1990
+	ren est_large est_large_`x'1990
 
-keep gisjoin est
-capture collapse (sum) est_nearest=est, by(gisjoin)
-merge 1:1 gisjoin using tract_gym94
-drop _merge
-replace est=est_nearest if est==.
-keep gisjoin est
-drop if gisjoin==""
-save tract_gym94, replace
+	merge 1:1 gisjoin using tract_`x'00
+	drop _merge
+	ren est_small est_small_`x'2000
+	ren est_large est_large_`x'2000
 
-** 2000
-cd $data\temp_files
-u gym00, clear
-keep zip est
-cd $data\geographic
-merge 1:m zip using tract1990_zip2000_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est, by(gisjoin)
-cd $data\temp_files
-save tract_gym00, replace
+	merge 1:1 gisjoin using tract_`x'10
+	drop _merge
+	ren est_small est_small_`x'2010
+	ren est_large est_large_`x'2010
 
-cd $data\geographic
-u tract1990_zip2000_nearest, clear
-cd $data\temp_files
-merge m:1 zip using gym00
-
-keep gisjoin est
-capture collapse (sum) est_nearest=est, by(gisjoin)
-merge 1:1 gisjoin using tract_gym00
-drop _merge
-replace est=est_nearest if est==.
-keep gisjoin est
-drop if gisjoin==""
-save tract_gym00, replace
-
-** 2010
-cd $data\temp_files
-u gym10, clear
-keep zip est
-cd $data\geographic
-merge 1:m zip using tract1990_zip2010_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est, by(gisjoin)
-cd $data\temp_files
-save tract_gym10, replace
-
-cd $data\geographic
-u tract1990_zip2010_nearest, clear
-cd $data\temp_files
-merge m:1 zip using gym10
-
-keep gisjoin est
-capture collapse (sum) est_nearest=est, by(gisjoin)
-merge 1:1 gisjoin using tract_gym10
-drop _merge
-replace est=est_nearest if est==.
-keep gisjoin est
-drop if gisjoin==""
-save tract_gym10, replace
-
-*** personal
-cd $data\temp_files
-u personal94, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip1990_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_personal94, replace
-
-cd $data\geographic
-u tract1990_zip1990_nearest, clear
-cd $data\temp_files
-merge m:1 zip using personal94
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_personal94
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_personal94, replace
-
-** 2000
-cd $data\temp_files
-u personal00, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2000_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_personal00, replace
-
-cd $data\geographic
-u tract1990_zip2000_nearest, clear
-cd $data\temp_files
-merge m:1 zip using personal00
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_personal00
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_personal00, replace
-
-** 2010
-cd $data\temp_files
-u personal10, clear
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep zip est_small est_large
-cd $data\geographic
-merge 1:m zip using tract1990_zip2010_1mi
-keep if _merge==3
-drop _merge
-capture collapse (sum) est_small est_large, by(gisjoin)
-cd $data\temp_files
-save tract_personal10, replace
-
-cd $data\geographic
-u tract1990_zip2010_nearest, clear
-cd $data\temp_files
-merge m:1 zip using personal10
-egen est_small= rowtotal(n1_4 n5_9)
-egen est_large= rowtotal(n10_19 n20_49 n50_99 n100_249 n250_499 n500_999 n1000)
-keep gisjoin est_small est_large
-capture collapse (sum) est_small_nearest=est_small est_large_nearest=est_large, by(gisjoin)
-merge 1:1 gisjoin using tract_personal10
-drop _merge
-replace est_small=est_small_nearest if est_small==.
-replace est_large=est_large_nearest if est_large==.
-keep gisjoin est_small est_large
-drop if gisjoin==""
-save tract_personal10, replace
-
-
-*** merge
-* restaurant
-cd $data\temp_files
-u tract_restaurant94, clear
-ren est_small est_small_restaurant1990
-ren est_large est_large_restaurant1990
-
-merge 1:1 gisjoin using tract_restaurant00
-drop _merge
-ren est_small est_small_restaurant2000
-ren est_large est_large_restaurant2000
-
-merge 1:1 gisjoin using tract_restaurant10
-drop _merge
-ren est_small est_small_restaurant2010
-ren est_large est_large_restaurant2010
-
-save tract_restaurant, replace
-
-** grocery
-u tract_grocery94, clear
-ren est_small est_small_grocery1990
-ren est_large est_large_grocery1990
-
-merge 1:1 gisjoin using tract_grocery00
-drop _merge
-ren est_small est_small_grocery2000
-ren est_large est_large_grocery2000
-
-merge 1:1 gisjoin using tract_grocery10
-drop _merge
-ren est_small est_small_grocery2010
-ren est_large est_large_grocery2010
-
-save tract_grocery, replace
+	save tract_`x', replace	
+}
 
 *** gym
 u tract_gym94, clear
@@ -4046,24 +3810,10 @@ drop _merge
 ren est est_gym2010
 save tract_gym, replace
 
-** personal
-u tract_personal94, clear
-ren est_small est_small_personal1990
-ren est_large est_large_personal1990
 
-merge 1:1 gisjoin using tract_personal00
-drop _merge
-ren est_small est_small_personal2000
-ren est_large est_large_personal2000
+/* Se están juntando todas las bases que se crearon en una base: */
+*************************************+*************************************+**
 
-merge 1:1 gisjoin using tract_personal10
-drop _merge
-ren est_small est_small_personal2010
-ren est_large est_large_personal2010
-
-save tract_personal, replace
-
-*** 
 u tract_restaurant, clear
 
 merge 1:1 gisjoin using tract_grocery
@@ -4077,40 +3827,38 @@ drop _merge
 sort gisjoin
 save tract_amenities, replace
 
-****************************** Code above generates intermediate files (intermediate files are already generated in the folders)
-********************************************************************************************
-****************************** Code below generates Table 1 and 6 (Code below can be run directly without running the above code)
-**** Regress the change of local neighborhood amenities on local skill ratio
 
-cd $data\geographic
+/* Se juntan las bases que contienen información de la población en 1990 y 2010 para cada tract, la población de altas habilidades a una milla a la redonde del tract */
+*************************************+*************************************+**
+
+cd $data/geographic
 u tract1990_tract1990_2mi, clear
 
 keep if dist<=1610
-cd $data\temp_files
-
+cd $data/temp_files
 ren gisjoin2 gisjoin
 
 merge m:1 gisjoin using population1990
 keep if _merge==3
 drop _merge
-
 ren population population1990
 
 merge m:1 gisjoin using population2010
 keep if _merge==3
 drop _merge
-
 drop gisjoin
 ren gisjoin1 gisjoin
 
-cd $data\temp_files
 
+cd $data/temp_files
 merge m:1 gisjoin using skill_pop_1mi
 keep if _merge==3
 drop _merge
 
-*** Merge the ingredient to compute the instrumental variable for local skill ratio
-cd $data\temp_files\iv
+/* Se juntan con la base que computa la variable instrumental para el ratio de habilidad, con la base creada anteriormente de las amenidades y la que combina información del tract con la del área metropolitana*/
+*************************************+*************************************+**
+
+cd $data/temp_files/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 keep if _merge==3
 drop _merge
@@ -4118,17 +3866,20 @@ drop _merge
 
 collapse (sum) population1990 population2010 impute2010_high impute2010_low impute1990_high impute1990_low sim1990_high sim1990_low sim2010_high sim2010_low, by(gisjoin)
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 gisjoin using tract_amenities
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
+
+/*Se generan las variables que representan la transformación logarítmica de las variables de amenidades (solo con altas habilidades, con bajas amenidades o en general) con alto número o bajo número de empleados por cada 1000 residentes. Esto hace para evaluar como fue el cambio en el tiempo del número de establecimientos: */ 
+*************************************+*************************************+**
 
 ** restaurant
 g d_large_restaurant=ln( (est_large_restaurant2010+1)/(population2010+1))-ln( (est_large_restaurant1990+1)/(population1990+1))
@@ -4138,16 +3889,19 @@ g d_restaurant=ln((est_small_restaurant2010+est_large_restaurant2010+1)/(populat
 ** grocery stores
 g d_large_grocery=ln( (est_large_grocery2010+1)/(population2010+1))-ln( (est_large_grocery1990+1)/(population1990+1))
 g d_small_grocery=ln( (est_small_grocery2010+1)/(population2010+1))-ln( (est_small_grocery1990+1)/(population1990+1))
-
 g d_grocery=ln( (est_small_grocery2010+est_large_grocery2010+1)/(population2010+1))-ln( (est_small_grocery1990+est_large_grocery1990+1)/(population1990+1))
+
 ** gym
 g d_gym=ln( (est_gym2010+1)/(population2010+1))-ln( (est_gym1990+1)/(population1990+1))
 
 ** personal services
 g d_large_personal=ln( (est_large_personal2010+1)/(population2010+1))-ln( (est_large_personal1990+1)/(population1990+1))
 g d_small_personal=ln( (est_small_personal2010+1)/(population2010+1))-ln( (est_small_personal1990+1)/(population1990+1))
-
 g d_personal=ln( (est_small_personal2010+est_large_personal2010+1)/(population2010+1))-ln( (est_small_personal1990+est_large_personal1990+1)/(population1990+1))
+
+
+/*Se generan las variables que representan el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract que se encuentran a una milla del tract : */
+*************************************+*************************************+**
 
 g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
 
@@ -4156,16 +3910,23 @@ g dln_sim_high=ln(sim2010_high)- ln(sim1990_high)
 g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
 
 duplicates drop gisjoin, force
-cd $data\temp_files
+cd $data/temp_files
 egen tract_id=group(gisjoin)
 
 save data_matlab, replace
 
+*************************************+*************************************+**
+/* Tabla 1 y 6 */
+*************************************+*************************************+**
 
-
-**** Regressions
+*****************************
 * Column (1-4) of Table 1
-cd $data\temp_files
+*****************************
+
+/*Se hace una regresión entre las amenidades del barrio y el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract. Se están utilizando efectos fijos de área metropolitana para controlar por todas las características no observables invariantes en el tiempo del área. Estas indican que manteniendo constante las características del área invariantes, la relación de aumentar la proporción de personas calificadas en el tract en el crecimiento de las amenidades es positivo. Se utilizan errores estándares robustos por posible heterocedasticidad de los errores estándares. El autor utiliza para el crecimiento de la habilidad el valor imputado de la proporción de población por ocupación para cada tract que tienen altas o bajas habilidades respecto al valor para cada MSA. Este valor se imputó multiplicando el número de personas en cada grupo de ocupación por la proporción de personas que trabajan en cada ocupación dentro del grupo de ocupación al que pertenecen (ver data prep location choice). */
+*************************************+*************************************+**
+
+cd $data/temp_files
 
 u data_matlab, clear
 
@@ -4174,7 +3935,12 @@ reghdfe d_grocery dratio, absorb(metarea) vce(robust)
 reghdfe d_gym dratio, absorb(metarea) vce(robust)
 reghdfe d_personal dratio, absorb(metarea) vce(robust)
 
-*** IV regression for amenity equation
+
+*****************************
+* Column (1-4) of Table 6
+*****************************
+
+
 * Column (1-4) of Table 6
 ******
 ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
@@ -4194,7 +3960,7 @@ keep gisjoin crime_violent_rate1990 crime_property_rate1990 crime_violent_rate20
 ren gisjoin gisjoin_muni
 ren gisjoin_1 gisjoin
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 gisjoin using population1990
 keep if _merge==3
@@ -4204,18 +3970,18 @@ merge 1:1 gisjoin using population2010
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 gisjoin using skill_pop
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 drop if _merge==2
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 gisjoin using tract1990_metarea
 keep if _merge==3
@@ -4280,14 +4046,14 @@ reshape wide greaterthan50, i(occ2010) j(year)
 
 g ln_d=ln( greaterthan502010)-ln( greaterthan501990)
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 occ2010 using inc_occ_1990_2000_2010
 drop _merge
 
 drop inc_mean1990 inc_mean2000 inc_mean2010 wage_real1990 wage_real2000 wage_real2010
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
@@ -4295,12 +4061,12 @@ drop _merge
 g dval=val_2010-val_1990
 
 
-cd $data\temp_files
+cd $data/temp_files
 
 save reduced_form, replace
 *****
 *** Regress change in long hours on long hour premium 
-cd $data\temp_files
+cd $data/temp_files
 u reduced_form, clear
 ** Table 3
 * Column 1
@@ -4309,16 +4075,16 @@ reg ln_d dval [w=count1990] if dval!=., r
 
 **** Change in central city share on change in long hours
 
-cd $data\temp_files
+cd $data/temp_files
  u tract_impute.dta, clear
- cd $data\geographic
+ cd $data/geographic
  merge m:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
@@ -4335,13 +4101,13 @@ keep occ2010 metarea downtown ratio1990 ratio2000 ratio2010 rank
 
 g dratio=ln(ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using reduced_form
 keep if _merge==3
 drop _merge
 
 drop count*
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -4378,12 +4144,12 @@ reshape wide trantime, i(occ2010 metarea) j(year)
 
 g dtran= trantime2010-trantime1990
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using reduced_form
 drop _merge
 
 drop count*
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -4413,7 +4179,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** Rent
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
 duplicates drop gisjoin, force
@@ -5237,7 +5003,7 @@ keep if _merge==3
 drop _merge
 
 *** Merge the ingredient to compute the instrumental variable for local skill ratio
-cd "$data/temp_files"\iv
+cd "$data/temp_files"/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 keep if _merge==3
 drop _merge
@@ -5356,7 +5122,7 @@ merge 1:1 gisjoin using skill_pop
 keep if _merge==3
 drop _merge
 
-cd "$data/temp_files"\iv
+cd "$data/temp_files"/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 drop if _merge==2
 drop _merge
@@ -5408,11 +5174,11 @@ global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
 
 
 ** residential data
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 ** Commute time data
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 
 merge 1:m gisjoin occ2010 using commute
 keep if _merge==3
@@ -5430,7 +5196,7 @@ ren expected_commute_1990 expected_commute
 g dexpected=expected_commute_2010-expected_commute
 
 *** value of time data
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -5438,7 +5204,7 @@ drop _merge
 drop se_1990 se_2000
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -5497,12 +5263,12 @@ replace occ_group=24 if occ2010>=7700 & occ2010<=8965
 * TRANSPORTATION AND MATERIAL MOVING
 replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 merge m:1 gisjoin occ_group using commute_total
 drop _merge
 
 
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 merge m:1 gisjoin occ_group using sim_iv
 keep if _merge==3
 drop _merge
@@ -5511,16 +5277,16 @@ merge m:1 gisjoin using sim_iv_total
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using skill_ratio_occupation
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -5541,13 +5307,13 @@ g drent=ln(rent2010+1)-ln(rent1990+1)
 
 ren count1990 count
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill_30
 drop if _merge==2
 drop _merge
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -5585,7 +5351,7 @@ g high_skill_room_density_1mi_3mi= high_skill*room_density_1mi_3mi
 g high_skill_expected_commute=high_skill*expected_commute
 g high_dval_expected_commute=high_skill*dval_expected_commute
 *** construct rent equation variable
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using ddemand
 keep if _merge==3
 drop _merge
@@ -5594,7 +5360,7 @@ cd $temp_files
 save data_30, replace
 
 **** Regress 
-cd $data\temp_files
+cd $data/temp_files
 u data_30, clear
 
  g ddemand_density=room_density_1mi_3mi*ddemand
@@ -5636,11 +5402,11 @@ global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
 
 
 ** residential data
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 ** Commute time data
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 
 merge 1:m gisjoin occ2010 using commute
 keep if _merge==3
@@ -5658,7 +5424,7 @@ ren expected_commute_1990 expected_commute
 g dexpected=expected_commute_2010-expected_commute
 
 *** value of time data
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -5666,7 +5432,7 @@ drop _merge
 drop se_1990 se_2000
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -5725,12 +5491,12 @@ replace occ_group=24 if occ2010>=7700 & occ2010<=8965
 * TRANSPORTATION AND MATERIAL MOVING
 replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-cd $data\temp_files\commute
+cd $data/temp_files\commute
 merge m:1 gisjoin occ_group using commute_total
 drop _merge
 
 
-cd $data\temp_files\iv
+cd $data/temp_files/iv
 merge m:1 gisjoin occ_group using sim_iv
 keep if _merge==3
 drop _merge
@@ -5739,16 +5505,16 @@ merge m:1 gisjoin using sim_iv_total
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using skill_ratio_occupation
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -5769,13 +5535,13 @@ g drent=ln(rent2010+1)-ln(rent1990+1)
 
 ren count1990 count
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill_50
 drop if _merge==2
 drop _merge
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -5813,7 +5579,7 @@ g high_skill_room_density_1mi_3mi= high_skill*room_density_1mi_3mi
 g high_skill_expected_commute=high_skill*expected_commute
 g high_dval_expected_commute=high_skill*dval_expected_commute
 *** construct rent equation variable
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using ddemand
 keep if _merge==3
 drop _merge
@@ -5822,7 +5588,7 @@ cd $temp_files
 save data_50, replace
 
 **** Regress 
-cd $data\temp_files
+cd $data/temp_files
 u data_50, clear
 
  g ddemand_density=room_density_1mi_3mi*ddemand
@@ -5864,17 +5630,17 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -5889,12 +5655,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -5904,7 +5670,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -5929,7 +5695,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -5938,7 +5704,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -5949,10 +5715,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -5967,12 +5733,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -5991,10 +5757,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 **************************************
 **** Five Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -6009,12 +5775,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6045,7 +5811,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 ********************************
 
 *** counterfactual when skill ratio can change and rent can change, too. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -6060,18 +5826,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -6092,24 +5858,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6127,7 +5893,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -6135,7 +5901,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -6154,7 +5920,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -6165,10 +5931,10 @@ save temp, replace
 
 *****************************************
 **** Three mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -6184,12 +5950,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6207,10 +5973,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************
 **** Five mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -6226,12 +5992,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6256,7 +6022,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 **********************
 
 *** counterfactual when skill ratio can change and rent does not change. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -6272,18 +6038,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -6304,24 +6070,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6339,7 +6105,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -6347,7 +6113,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -6366,7 +6132,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -6379,10 +6145,10 @@ save temp, replace
 
 *****************************************************
 *** Three miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -6398,12 +6164,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6423,10 +6189,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************************
 *** Five miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -6442,12 +6208,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln(ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6543,12 +6309,12 @@ replace se_dval=r(se) if occ2010==`num'
 collapse (firstnm) val_1990 se_1990 val_2010 se_2010 dval se_dval, by(occ2010)
 
 
-cd $data\temp_files
+cd $data/temp_files
 
 save val_40_60_total_noeduc, replace
 
 *** show that selection only occurs at level estimate but not change
-cd $data\temp_files
+cd $data/temp_files
 
 u val_40_60_total_noeduc, clear
 
@@ -6560,7 +6326,7 @@ ren val_2010 val_2010_noeduc
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 drop _merge
 
@@ -6621,17 +6387,17 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6646,12 +6412,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -6661,7 +6427,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -6686,7 +6452,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -6695,7 +6461,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -6706,10 +6472,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -6724,12 +6490,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6760,17 +6526,17 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 **** Actual 1990-2000 on predicted 1990-2010
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6785,12 +6551,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -6800,7 +6566,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -6825,7 +6591,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -6834,7 +6600,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -6845,10 +6611,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -6863,12 +6629,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -6891,17 +6657,17 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 
 **** Actual 2000-2010 on predicted 1990-2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6916,12 +6682,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -6931,7 +6697,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -6959,7 +6725,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute2000_high impute2000_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -6968,7 +6734,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -6979,10 +6745,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -6998,12 +6764,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio2000)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7025,17 +6791,17 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 **** Actual 1990-2000 on predicted 1990-2000
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2000
 keep if _merge==3
 drop _merge
@@ -7050,12 +6816,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2000=sum(sim2000)
 
 g counterfactual_share=sim2000/total_sim2000
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -7065,7 +6831,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -7093,7 +6859,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2000_high_cf impute2000_low_cf impute2000_high impute2000_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -7102,7 +6868,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2000_high_cf=impute2000_high_cf
@@ -7113,10 +6879,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -7131,12 +6897,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2000_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2000)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7157,17 +6923,17 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 **** Actual 2000 - 2010 on predicted 2000 - 2010 
 
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2000
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term2000
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7182,12 +6948,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -7197,7 +6963,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -7225,7 +6991,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute2000_high impute2000_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -7234,7 +7000,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -7245,10 +7011,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -7263,12 +7029,12 @@ g ratio2000=impute2000_high/(impute2000_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio2000)
 g dln_ratio=ln( ratio2010)-ln(ratio2000)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7317,7 +7083,7 @@ g greaterthan50=0
 replace greaterthan50=1 if uhrswork>=50
 
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 statefip puma1990 using puma1990_downtown_5mi
 g downtown=0
 replace downtown=1 if _merge==3
@@ -7339,14 +7105,14 @@ reshape wide ln_d, i(occ2010) j(downtown)
 reg ln_d1 ln_d0
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge 1:1 occ2010 using occ2010_count
 drop _merge
 
 
 ******** Table A3
 *** Regressing change in incidence of working long hour on changing LHP
-cd $data\temp_files
+cd $data/temp_files
 
 merge 1:1 occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
@@ -7371,10 +7137,10 @@ clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
-cd $data\temp_files
+cd $data/temp_files
 
 u skill_pop, clear
- cd $data\temp_files\iv
+ cd $data/temp_files/iv
 merge m:1 gisjoin using sim_iv_total
 keep if _merge==3
 drop _merge
@@ -7401,17 +7167,17 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7426,12 +7192,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -7441,7 +7207,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -7466,7 +7232,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -7475,7 +7241,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -7486,10 +7252,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -7504,12 +7270,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7530,10 +7296,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 **************************************
 **** Five Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -7548,12 +7314,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7588,7 +7354,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 ********************************
 
 *** counterfactual when skill ratio can change and rent can change, too. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -7604,18 +7370,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -7636,24 +7402,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7671,7 +7437,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -7679,7 +7445,7 @@ drop _merge
 
 g counterfactual=count2010*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -7698,7 +7464,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -7709,10 +7475,10 @@ save temp, replace
 
 *****************************************
 **** Three mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -7728,12 +7494,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7752,10 +7518,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************
 **** Five mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -7771,12 +7537,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7802,7 +7568,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 **********************
 
 *** counterfactual when skill ratio can change and rent does not change. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -7818,18 +7584,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -7850,24 +7616,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7885,7 +7651,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -7893,7 +7659,7 @@ drop _merge
 
 g counterfactual=count2010*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -7912,7 +7678,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -7923,10 +7689,10 @@ save temp, replace
 
 *****************************************************
 *** Three miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -7942,12 +7708,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -7969,10 +7735,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************************
 *** Five miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -7988,12 +7754,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8022,17 +7788,17 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8047,12 +7813,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill_30
 keep if _merge==3
@@ -8062,7 +7828,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -8087,7 +7853,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -8096,7 +7862,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -8107,10 +7873,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -8125,12 +7891,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8147,10 +7913,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 **************************************
 **** Five Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -8165,12 +7931,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8202,7 +7968,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 ********************************
 
 *** counterfactual when skill ratio can change and rent can change, too. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -8217,18 +7983,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -8249,24 +8015,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8284,7 +8050,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -8292,7 +8058,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -8311,7 +8077,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -8322,10 +8088,10 @@ save temp, replace
 
 *****************************************
 **** Three mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -8341,12 +8107,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8364,10 +8130,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************
 **** Five mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -8383,12 +8149,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8413,7 +8179,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 **********************
 
 *** counterfactual when skill ratio can change and rent does not change. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -8429,18 +8195,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -8461,24 +8227,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8496,7 +8262,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -8504,7 +8270,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -8523,7 +8289,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -8536,10 +8302,10 @@ save temp, replace
 
 *****************************************************
 *** Three miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -8555,12 +8321,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8580,10 +8346,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************************
 *** Five miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -8599,12 +8365,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln(ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8632,17 +8398,17 @@ global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -8657,12 +8423,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill_50
 keep if _merge==3
@@ -8672,7 +8438,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -8697,7 +8463,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -8706,7 +8472,7 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
@@ -8717,10 +8483,10 @@ save temp, replace
 
 **************************************
 **** Three Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -8735,12 +8501,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8756,10 +8522,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 **************************************
 **** Five Mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -8774,12 +8540,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8812,7 +8578,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 ********************************
 
 *** counterfactual when skill ratio can change and rent can change, too. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -8827,18 +8593,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -8859,24 +8625,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -8894,7 +8660,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -8902,7 +8668,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -8921,7 +8687,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -8932,10 +8698,10 @@ save temp, replace
 
 *****************************************
 **** Three mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -8951,12 +8717,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -8974,10 +8740,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************
 **** Five mile evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -8993,12 +8759,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -9023,7 +8789,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 **********************
 
 *** counterfactual when skill ratio can change and rent does not change. 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g dln_sim_high_total  = ln(impute2010_high_cf)- ln(impute1990_high)
@@ -9039,18 +8805,18 @@ g dratio=ln(ratio2010)-ln(ratio1990)
 
 keep gisjoin dln_sim_high_total dln_sim_low_total ratio1990 ratio2010 dratio drent_predict
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
 *** rent
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
@@ -9071,24 +8837,24 @@ drop drent
 
 
 keep gisjoin dln_ratio_cf drent_cf
-cd $data\temp_files
+cd $data/temp_files
 save counterfactual_I_pre_merge, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u data, clear
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -9106,7 +8872,7 @@ by occ2010 metarea: egen total_sim2010=sum(sim2010)
 g counterfactual_share=sim2010/total_sim2010
 
 drop count 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
@@ -9114,7 +8880,7 @@ drop _merge
 
 g counterfactual=count1990*counterfactual_share
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using college_share
 keep if _merge==3
@@ -9133,7 +8899,7 @@ g impute1990_low=impute_share1990*count1990*(1-high_skill)
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low, by(metarea gisjoin)
 
 *************************
-cd $data\temp_files
+cd $data/temp_files
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
@@ -9146,10 +8912,10 @@ save temp, replace
 
 *****************************************************
 *** Three miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -9165,12 +8931,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -9190,10 +8956,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 *****************************************************
 *** Five miles evaluation
-cd $data\temp_files
+cd $data/temp_files
 u temp, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
@@ -9209,12 +8975,12 @@ g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln(ratio2010)-ln(ratio1990)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -9262,7 +9028,7 @@ keep if year==2010
 
 drop year
 
-cd $data\temp_files
+cd $data/temp_files
 
 save occ2010_dg, replace
 
@@ -9287,7 +9053,7 @@ drop if uhrswork==0
 g greaterthan50=0
 replace greaterthan50=1 if uhrswork>=50
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -9314,7 +9080,7 @@ merge m:1 occ2010 using occ2010_dg
 
 collapse g1990* g2010* val_1990* val_2010* dg_occ [w=perwt], by(metarea)
 
-cd $data\temp_files
+cd $data/temp_files
 
 save appendix_eval_reduced_form, replace
 
@@ -9323,17 +9089,17 @@ save appendix_eval_reduced_form, replace
 
 *** create counterfatual location share in 2010
 
-cd $data\temp_files
+cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data\temp_files\counterfactual
+cd $data/temp_files\counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -9348,12 +9114,12 @@ sort occ2010 metarea gisjoin
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
 g counterfactual_share=sim2010/total_sim2010
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 
 merge m:1 occ2010 using high_skill
 keep if _merge==3
@@ -9363,7 +9129,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -9388,7 +9154,7 @@ g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
@@ -9397,14 +9163,14 @@ replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
 
 save impute, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u impute, clear
 
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
 
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
@@ -9419,12 +9185,12 @@ g ratio1990=impute1990_high/(impute1990_low)
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -9432,7 +9198,7 @@ sort metarea downtown
 by metarea: g dln_ratio_ratio_cf=dln_ratio_cf-dln_ratio_cf[_n-1]
 by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 metarea using appendix_eval_reduced_form
 keep if _merge==3
 drop _merge
@@ -9526,7 +9292,7 @@ display share4
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
-cd $data\temp_files
+cd $data/temp_files
 
 u val_40_60_total_1990_2000_2010, clear
 
@@ -12534,14 +12300,14 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
 ****skill ratio against distance
-cd $data\temp_files
+cd $data/temp_files
 
 u skill_pop, clear
 g ratio1990= impute1990_high/ impute1990_low
 g ratio2000= impute2000_high/ impute2000_low
 g ratio2010= impute2010_high/ impute2010_low
 
-cd $data\geographic\
+cd $data/geographic\
 merge 1:1 gisjoin using tract1990_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -12554,7 +12320,7 @@ replace distance=distance/1609
 g dratio=ln( ratio2010)-ln(ratio1990)
 g dratio2000=ln(ratio2000) - ln(ratio1990)
 g dratio2010=ln(ratio2010) - ln(ratio2000)
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
@@ -12572,13 +12338,13 @@ graph export dratio_distance_25.emf, replace
 
 
 *** By income 1980s
-cd $data\temp_files
+cd $data/temp_files
 
 u skill_pop, clear
 g ratio1990= impute1990_high/ impute1990_low
 g ratio2010= impute2010_high/ impute2010_low
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -12590,19 +12356,19 @@ drop _merge
 replace distance=distance/1609
 g dratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 drop if gisjoin==""
 
 ren gisjoin gisjoin1
-merge 1:1 gisjoin1 using $data\geographic\tract1990_tract1980_nearest.dta
+merge 1:1 gisjoin1 using $data/geographic\tract1990_tract1980_nearest.dta
 keep if _merge==3
 drop _merge
 
 ren gisjoin2 gisjoin
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using 1980_income_rank
 
 g pop1990_high=int(impute1990_high)
@@ -12628,13 +12394,13 @@ graph export new_skilled_by_1980_income.png, replace
 
 
 *** By income 2000
-cd $data\temp_files
+cd $data/temp_files
 
 u skill_pop, clear
 g ratio1990= impute1990_high/ impute1990_low
 g ratio2010= impute2010_high/ impute2010_low
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -12646,19 +12412,19 @@ drop _merge
 replace distance=distance/1609
 g dratio=ln( ratio2010)-ln(ratio1990)
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 drop if gisjoin==""
 
 ren gisjoin gisjoin1
-merge 1:1 gisjoin1 using $data\geographic\tract1990_tract2000_nearest.dta
+merge 1:1 gisjoin1 using $data/geographic\tract1990_tract2000_nearest.dta
 keep if _merge==3
 drop _merge
 
 ren gisjoin2 gisjoin
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 gisjoin using 2000_income_rank
 
 g pop1990_high=int(impute1990_high)
@@ -12691,11 +12457,11 @@ clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
-cd $data\temp_files
+cd $data/temp_files
 
 u occ_emp_1994,clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip1990_downtown
 drop if _merge==2
@@ -12705,32 +12471,32 @@ replace downtown=1 if _merge==3
 drop _merge
 
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip1990_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 keep if rank<=25
 drop serial year
 
 collapse (sum) est_num1990=est_num, by(occ2010 downtown)
-cd $data\temp_files
+cd $data/temp_files
 save temp1990, replace
 
 **2000
-cd $data\temp_files
+cd $data/temp_files
 
 u occ_emp_2000,clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip2000_downtown
 drop if _merge==2
@@ -12740,32 +12506,32 @@ replace downtown=1 if _merge==3
 drop _merge
 
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip2000_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 keep if rank<=25
 drop serial year
 
 collapse (sum) est_num2000=est_num, by(occ2010 downtown)
-cd $data\temp_files
+cd $data/temp_files
 save temp2000, replace
 ***
 **2010
-cd $data\temp_files
+cd $data/temp_files
 
 u occ_emp_2010,clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip2010_downtown
 drop if _merge==2
@@ -12774,27 +12540,27 @@ g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 zip using zip2010_metarea
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
 drop _merge
 
-cd $data\geographic
+cd $data/geographic
 keep if rank<=25
 drop serial year
 
 collapse (sum) est_num2010=est_num, by(occ2010 downtown)
-cd $data\temp_files
+cd $data/temp_files
 save temp2010, replace
 
-cd $data\temp_files
+cd $data/temp_files
 clear
 u temp1990, clear
 merge 1:1 occ2010 downtown using temp2000
@@ -12816,16 +12582,16 @@ save occ_emp_downtown, replace
 
 
 **** residential share
-cd $data\temp_files
+cd $data/temp_files
  u tract_impute.dta, clear
- cd $data\geographic
+ cd $data/geographic
  merge m:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
 
- cd $data\geographic
+ cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
@@ -12841,11 +12607,11 @@ by occ2010: g ratio2010=impute2010/(impute2010+impute2010[_n-1])
 
 keep occ2010 downtown ratio1990 ratio2000 ratio2010
 
-cd $data\temp_files
+cd $data/temp_files
 merge 1:1 occ2010 downtown using occ_emp_downtown
 keep if _merge==3
 drop _merge
-cd $data\geographic
+cd $data/geographic
 
 g dratio=ln(ratio2010)-ln(ratio1990)
 g dratio_emp=ln(ratio_emp2010)-ln(ratio_emp1990)
@@ -12854,7 +12620,7 @@ label define occ 120 "financial worker" 2100 "Lawyer"
 label values occ2010 occ
 
 g occ2010_2=occ2010 if occ2010==800 | occ2010==2100 | occ2010==4820 | occ2010==30 | occ2010==1000 | occ2010==5700 | occ2010==4030
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using college_share
 keep if _merge==3
 drop _merge
@@ -12862,7 +12628,7 @@ drop _merge
 g high_skill=0
 replace high_skill=1 if college_share1990>0.4
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using count1990_rank25
 drop _merge
 
@@ -12900,7 +12666,7 @@ xtitle(Share of employment in central cities in 1994) ytitle(Share of residents 
 graph export $data\graph\central_emp_res.emf, replace
 graph export $data\graph\labeled\figure_a9.pdf, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u temp1990, clear
 merge 1:1 occ2010 downtown using temp2000
 keep if _merge==3
@@ -12912,12 +12678,12 @@ drop _merge
 
 sort occ2010 downtown
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 drop if _merge==2
 drop _merge
 
-cd $data\temp_files
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -12988,7 +12754,7 @@ replace greaterthan50=1 if uhrswork>=50
 
 collapse greaterthan50 [w=perwt], by(year wage_tile)
 
-cd $data\temp_files
+cd $data/temp_files
 save tile_1990_2010, replace
 
 ****
@@ -13019,7 +12785,7 @@ replace greaterthan50=1 if uhrswork>=50
 
 collapse greaterthan50 [w=perwt], by(year wage_tile)
 
-cd $data\temp_files
+cd $data/temp_files
 append using tile_1990_2010
 
 *keep if year==1980 | year==2010
@@ -13106,12 +12872,12 @@ replace wage_tile=wage_tile2010 if year==2010
 g ln_trantime=ln(trantime)
 keep if tranwork<70 & tranwork>0 & trantime>0
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 keep if rank<=25
 
-cd $data\temp_files
+cd $data/temp_files
 collapse ln_trantime [w=perwt], by(year wage_tile)
 
 save commute_tile_1990_2010, replace
@@ -13142,13 +12908,13 @@ g ln_trantime=ln(trantime)
 
 keep if tranwork<70 & tranwork>0 & trantime>0
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 keep if rank<=25
 collapse ln_trantime [w=perwt], by(year wage_tile)
 
-cd $data\temp_files
+cd $data/temp_files
 append using commute_tile_1990_2010
 
 sort wage_tile year
@@ -13213,7 +12979,7 @@ foreach num of numlist 1976(1)2015 {
 xtile wage_tile`num'=wage if year==`num', nq(10)
 replace wage_tile=wage_tile`num' if year==`num'
 }
-cd $data\temp_files
+cd $data/temp_files
 save temp, replace
 
 *** 1962 to 1976
@@ -13233,7 +12999,7 @@ foreach num of numlist 1962(1)1975 {
 xtile wage_tile`num'=wage if year==`num', nq(10)
 replace wage_tile=wage_tile`num' if year==`num'
 }
-cd $data\temp_files
+cd $data/temp_files
 save temp_1962_1975, replace
 
 
@@ -13284,7 +13050,7 @@ global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
 ** 1980 1990 2000 2010 income comes from demographic do file. 
 clear all
 
-cd $data\temp_files
+cd $data/temp_files
 
 u 1980_income, clear
 
@@ -13324,9 +13090,9 @@ save 2010_income_rank, replace
 
 **** income rank vs distance to downtown
 
-cd $data\temp_files
+cd $data/temp_files
 u 1980_income_rank, clear
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1980_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -13335,13 +13101,13 @@ merge 1:1 gisjoin using tract1980_metarea
 keep if _merge==3
 drop _merge
 replace distance=distance/1609
-cd $data\temp_files
+cd $data/temp_files
 g year=1980
 save temp1980, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 1990_income_rank, clear
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -13351,13 +13117,13 @@ keep if _merge==3
 drop _merge
 
 replace distance=distance/1609
-cd $data\temp_files
+cd $data/temp_files
 g year=1990
 save temp1990, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 2000_income_rank, clear
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract2000_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -13367,13 +13133,13 @@ keep if _merge==3
 drop _merge
 
 replace distance=distance/1609
-cd $data\temp_files
+cd $data/temp_files
 g year=2000
 save temp2000, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 2010_income_rank, clear
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using tract2010_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -13383,7 +13149,7 @@ keep if _merge==3
 drop _merge
 
 replace distance=distance/1609
-cd $data\temp_files
+cd $data/temp_files
 g year=2010
 save temp2010, replace
 
@@ -13428,10 +13194,10 @@ graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(d
 
 **** Chicago
 
-cd $data\temp_files
+cd $data/temp_files
 u 1980_income_rank, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using longitude_latitude_tract1980
 drop _merge
 
@@ -13443,10 +13209,10 @@ spmap rank_income using tract1980_coord if latitude<=5180000 & latitude>=5123040
 cd $data\graph
 graph export chicago_ranking_1980.png, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 1990_income_rank, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using longitude_latitude_tract1990
 drop _merge
 
@@ -13459,22 +13225,22 @@ cd $data\graph
 graph export chicago_ranking_1990.png, replace
 
 
-cd $data\temp_files
+cd $data/temp_files
 u 2000_income_rank, clear
 
 ren gisjoin GISJOIN
-cd $data\geographic
+cd $data/geographic
 merge 1:1 GISJOIN using tract2000_shape
 
 spmap rank_income using tract2000_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
 cd $data\graph
 graph export chicago_ranking_2000.png, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 2010_income_rank, clear
 
 ren gisjoin GISJOIN
-cd $data\geographic
+cd $data/geographic
 merge 1:1 GISJOIN using tract2010_shape
 
 spmap rank_income using tract2010_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
@@ -13486,10 +13252,10 @@ graph export chicago_ranking_2010.png, replace
 
 **** New York
 
-cd $data\temp_files
+cd $data/temp_files
 u 1980_income_rank, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using longitude_latitude_tract1980
 drop _merge
 
@@ -13501,10 +13267,10 @@ spmap rank_income using tract1980_coord if latitude<=5012000 & latitude>=4949000
 cd $data\graph
 graph export nyc_ranking_1980.png, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 1990_income_rank, clear
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 gisjoin using longitude_latitude_tract1990
 drop _merge
 
@@ -13518,23 +13284,23 @@ graph export nyc_ranking_1990.png, replace
 
 
 
-cd $data\temp_files
+cd $data/temp_files
 u 2000_income_rank, clear
 
 ren gisjoin GISJOIN
 
-cd $data\geographic
+cd $data/geographic
 merge 1:1 GISJOIN using tract2000_shape
 
 spmap rank_income using tract2000_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
 cd $data\graph
 graph export nyc_ranking_2000.png, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u 2010_income_rank, clear
 
 ren gisjoin GISJOIN
-cd $data\geographic
+cd $data/geographic
 merge 1:1 GISJOIN using tract2010_shape
 
 spmap rank_income using tract2010_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
@@ -13771,7 +13537,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 cd $data\ipums_micro
 u 1990_2000_2010_temp , clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
@@ -13831,7 +13597,7 @@ label value college college_lab
 cd $data\ipums_micro
 u 1990_2000_2010_temp , clear
 
-cd $data\geographic
+cd $data/geographic
 
 merge m:1 metarea using 1990_rank
 keep if _merge==3
@@ -13922,7 +13688,7 @@ replace wage_tile=wage_tile2010 if year==2010
 g greaterthan50=0
 replace greaterthan50=1 if uhrswork>=50
 
-cd $data\geographic
+cd $data/geographic
 merge m:1 statefip puma1990 using puma1990_downtown_5mi
 g downtown=0
 replace downtown=1 if _merge==3
@@ -13934,10 +13700,10 @@ drop _merge
 
 
 collapse greaterthan50 [w=perwt], by(year wage_tile downtown)
-cd $data\temp_files
+cd $data/temp_files
 save tile_1990_2010, replace
 
-cd $data\temp_files
+cd $data/temp_files
 u tile_1990_2010, clear
 
 keep if year==1990 | year==2010
