@@ -3507,7 +3507,7 @@ save value_term2010_high50, replace
 *************************************+*************************************+**
 *************************************+*************************************+**
 
-/* Esta base de datos */
+/* Esta base de datos genera la tabla 1 y 6. */
 
 
 *************************************+*************************************+**
@@ -3939,20 +3939,27 @@ reghdfe d_personal dratio, absorb(metarea) vce(robust)
 *****************************
 * Column (1-4) of Table 6
 *****************************
+/*Se hace una regresión entre las amenidades del barrio y el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract. Se están utilizando efectos fijos de área metropolitana y se utilizan errores estándares robustos por posible heterocedasticidad de los errores estándares. El autor instrumenta la variable independiente con su variable instrumental ya que quiere evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. Se observa que en este caso instrumenta con el crecimiento de altas habilidades y el crecimiento de bajas habilidades por separado. No se comprende muy bien porque tomo esta decisión en vez de instrumentar con el valor simulado que calcula el cambio en la proporción en el tiempo (drtio). Tampoco se comprende muy bien si el comando ivreghdfe ya está teniendo en cuenta que la estimación se pretende hacer por GMM o si se está corriendo con una regresión lineal. Se sugiere que el autor aclare esto ya que haciendo una busqueda de internet no aparece como sería el comando si se quisiera utilizar otro modelo diferente. Al no tenerse mucho conocimiento del método GMM, no se sabe si el estimador puede seguir siendo endógeno porque asentarse cerca a su trabajo y mayores amenidades pueden estar relacionadas con el valor de la renta por ejemplo. */
+*************************************+*************************************+**
 
-
-* Column (1-4) of Table 6
-******
 ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
 ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
 ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
 ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
 
-****
-** crime amenity
+
+
+
+
+
+
+
+*************************************+*************************************+**
+/* Data Cleaning Crime Amenity*/
+*************************************+*************************************+**
 
 clear all
-cd $data\crime
+cd $data/crime
 import delimited crime_place2013_tract1990.csv , varnames(1) clear
 
 keep gisjoin crime_violent_rate1990 crime_property_rate1990 crime_violent_rate2010 crime_property_rate2010 gisjoin_1
