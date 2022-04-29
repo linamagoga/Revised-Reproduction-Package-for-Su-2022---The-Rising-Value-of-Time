@@ -2733,554 +2733,63 @@ ren gisjoin1 gisjoin
 
 save room_density1980_1mi, replace
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Data Prep -  Counterfactual Value
-*************************************+*************************************+****
+*************************************+*************************************+***
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+****************************************************************
+**** Create value for employment proximity term in 1990
+****************************************************************
 
-****************
-** Create value for employment proximity term in 1990
+
+*************************************+*************************************+***
+** Cruce base de datos
+*************************************+*************************************+***
+
+***Proporción de emplados por ocupación respecto al tract para 1994:
 cd $data/temp_files
 u occ_emp_share_1994, clear
+
+*** Valor de las horas extraspara los tres años:
 cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
 
+*** Dummy ocupación es altamente calificada: 
 cd $data/temp_files
+
+preserve
 merge m:1 occ2010 using high_skill
 drop if _merge==2
 drop _merge
-
 drop se_1990 se_2010
-cd $data/temp_files
 save occ_emp_share_temp, replace
+restore
 
-***
-
-***
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files
-u occ_emp_share_temp, clear
-keep if occ2010==`num'
-cd $data/temp_files
-
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value1990=exp(-1.408819*val_1990*travel_time*(1-high_skill) -6.002858*high_skill*val_1990*travel_time)
-
-sort zip
-
-replace value1990=value1990*share
-
-collapse (sum) counterfactual_share=value1990, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term1990_`num', replace
-}
-
-
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
-
-
-append using value_term1990_`num'
-
-}
-
-save value_term1990, replace
-
-****
-
-
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files\
-u occ_emp_share_temp, clear
-keep if occ2010==`num'
-cd $data/temp_files\
-
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value2000=exp(-1.408819*val_2000*travel_time*(1-high_skill) -6.002858*high_skill*val_2000*travel_time)
-
-sort zip
-
-replace value2000=value2000*share
-
-collapse (sum) counterfactual_share=value2000, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term2000_`num', replace
-}
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
-
-append using value_term2000_`num'
-
-}
-
-save value_term2000, replace
-
-
-****
-
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files\
-u occ_emp_share_temp, clear
-keep if occ2010==`num'
-cd $data/temp_files\
-
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value2010=exp(-1.408819*val_2010*travel_time*(1-high_skill) -6.002858*high_skill*val_2010*travel_time)
-
-sort zip
-
-replace value2010=value2010*share
-
-collapse (sum) counterfactual_share=value2010, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term2010_`num', replace
-}
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
-
-append using value_term2010_`num'
-
-}
-
-save value_term2010, replace
-
-
-*********************************
-
-
-****************
-** Create value for employment proximity term in 1990
-cd $data/temp_files
-u occ_emp_share_1994, clear
-cd $data/temp_files
-merge m:1 metarea occ2010 using val_40_60_total_1990_2000_2010
-drop _merge
-
-cd $data/temp_files
+preserve 
 merge m:1 occ2010 using high_skill_30
 drop if _merge==2
 drop _merge
-
-cd $data/temp_files
+drop se_1990 se_2010
 save occ_emp_share_temp_30, replace
+restore
 
-***
-
-***
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files
-u occ_emp_share_temp_30, clear
-keep if occ2010==`num'
-cd $data/temp_files
-drop if zip==.
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value1990=exp(-2.128*val_1990*travel_time*(1-high_skill) -6.184*high_skill*val_1990*travel_time)
-
-sort zip
-
-replace value1990=value1990*share
-
-collapse (sum) counterfactual_share=value1990, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term1990_30_`num', replace
-}
-
-
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
-
-
-append using value_term1990_30_`num'
-
-}
-
-save value_term1990_high30, replace
-
-****
-****
-
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files\
-u occ_emp_share_temp_30, clear
-keep if occ2010==`num'
-cd $data/temp_files\
-drop if zip==.
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value2010=exp(-2.128*val_2010*travel_time*(1-high_skill) -6.184*high_skill*val_2010*travel_time)
-
-sort zip
-
-replace value2010=value2010*share
-
-collapse (sum) counterfactual_share=value2010, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term2010_30_`num', replace
-}
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
-
-append using value_term2010_30_`num'
-
-}
-
-save value_term2010_high30, replace
-
-
-********************************
-
-
-****************
-** Create value for employment proximity term in 1990
-cd $data/temp_files
-u occ_emp_share_1994, clear
-cd $data/temp_files
-merge m:1 occ2010 using val_40_60_total_1990_2000_2010
-keep if _merge==3
-drop _merge
-
-cd $data/temp_files
 merge m:1 occ2010 using high_skill_50
 drop if _merge==2
 drop _merge
-
-cd $data/temp_files
+drop se_1990 se_2010
 save occ_emp_share_temp_50, replace
 
-***
+*************************************+*************************************+***
+** Crear un valor para el término de proximidad de 1990, 2000 y 2010:
+*************************************+*************************************+***
+/*El proceso de generación de bases se tenía en loops separados, lo cual hacía que no fuera óptimo el proceso. Se fusionó todo en un loop para que fuera más sencillo comprender todo el proceso.*/
 
-***
+
+**Cada número representa una ocupación: 
 # delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
+global x 30 120 130 150 205 230 310
 350 410 430 520 530 540 560 620 710 730 800
 860 1000 1010 1220 1300 1320 1350 1360 1410
 1430 1460 1530 1540 1550 1560 1610 1720
@@ -3305,166 +2814,104 @@ foreach num of numlist 30 120 130 150 205 230 310
 8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
 8760 8800 8810 8830 8965
 9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files
-u occ_emp_share_temp_50, clear
-keep if occ2010==`num'
-cd $data/temp_files
-drop if zip==.
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value1990=exp(-3.431*val_1990*travel_time*(1-high_skill) -9.494*high_skill*val_1990*travel_time)
-
-sort zip
-
-replace value1990=value1990*share
-
-collapse (sum) counterfactual_share=value1990, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term1990_50_`num', replace
-}
-
-
-
-cd $data/temp_files/counterfactual
-clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
+9510 9600 9610 9620 9640 ;
 # delimit cr
 
+** Para cada tipo de definición de ocupaciones que requieren altas habilidades:
+local b "occ_emp_share_temp occ_emp_share_temp_30 occ_emp_share_temp_50"
+foreach a of local b{
+	local i = 1
+** Para cada año para el que se requiere el análisis:
+foreach y of numlist 1990 2000 2010{
+	**Para cada ocupación:
+	foreach num of global x{
+	
+	**Se mantienen las observaciones para ese periodo de tiempo:
+	cd $data/temp_files
+	u `a', clear
+	keep if occ2010==`num'
+	
+	** Se junta con la base de datos que estima el tiempo de recorrido:
+	cd $data/temp_files
+	drop if zip==.
+	merge 1:m zip using travel_time_hat
+	keep if _merge==3
+	drop _merge
+	
+	ren travel_time_hat travel_time
 
-append using value_term1990_50_`num'
+	** Horas de viaje por semana: 
+	replace travel_time=travel_time*10
 
-}
-
-save value_term1990_high50, replace
-
-****
-****
-
-# delimit
-
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 
-2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520
-5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 
- 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-
-# delimit cr
-cd $data/temp_files\
-u occ_emp_share_temp_50, clear
-keep if occ2010==`num'
-cd $data/temp_files\
-drop if zip==.
-merge 1:m zip using travel_time_hat
-keep if _merge==3
-drop _merge
-
-ren travel_time_hat travel_time
-
-** commuting hours per work week
-replace travel_time=travel_time*10
-
-g value2010=exp(-3.431*val_2010*travel_time*(1-high_skill) -9.494*high_skill*val_2010*travel_time)
-
-sort zip
-
-replace value2010=value2010*share
-
-collapse (sum) counterfactual_share=value2010, by(gisjoin)
-
-g occ2010=`num'
-cd $data/temp_files/counterfactual
-save value_term2010_50_`num', replace
-}
-
+*** Se estima el valor del tiempo de ese año utilizando el valor 
+**verdadero, el tiempo de viaje y si se es de alta o baja calificación.
+/* El autor plantea unos números para estimar el valor para cada 
+definición; sin embargo no se sabe de donde salieron. Se sugiere que 
+después revise esto y haga explícito de donde están sacando las variables 
+*/
+if `i' == 1{
+	
+	g value`y'=exp(-1.408819*val_`y'*travel_time*(1-high_skill) -6.002858*high_skill*val_`y'*travel_time)
+	sort zip
+	*** Se estima el valor del tiempo de cada año utilizando el valor estimado por la proporción de personas que tiene esa ocupación que viven en el tract:
+	replace value`y'=value`y'*share
+	collapse (sum) counterfactual_share=value`y', by(gisjoin)
+	g occ2010=`num'
+	cd $data/temp_files/counterfactual
+	save value_term`y'_`num', replace
+	
+	}
+	
+else if `i' == 2{
+	g value`y'=exp(-2.128*val_1990*travel_time*(1-high_skill) -6.184*high_skill*val_1990*travel_time)
+	sort zip
+	replace value`y'=value`y'*share
+	collapse (sum) counterfactual_share=value`y', by(gisjoin)
+	g occ2010=`num'
+	cd $data/temp_files/counterfactual
+	save value_term`y'_30_`num', replace
+	}
+	
+else if `i'== 3{
+	g value`y'=exp(-3.431*val_`y'*travel_time*(1-high_skill) -9.494*high_skill*val_`y'*travel_time)
+	sort zip
+	replace value`y'=value`y'*share
+	collapse (sum) counterfactual_share=value`y', by(gisjoin)
+	g occ2010=`num'
+	cd $data/temp_files/counterfactual
+	save value_term`y'_50_`num', replace	
+	}
+	}
+*** Se juntan todas la base de datos y se almacenan en una sola:
 cd $data/temp_files/counterfactual
 clear
-# delimit
-foreach num of numlist 30 120 130 150 205 230 310
-350 410 430 520 530 540 560 620 710 730 800
-860 1000 1010 1220 1300 1320 1350 1360 1410
-1430 1460 1530 1540 1550 1560 1610 1720
-1740 1820 1920 1960 2000 2010 2040 2060 2100 2140
-2200 2300 2310 2320 2340 2430 2540 2600 2630 2700 2720
-2750 2810 2825 2840 2850 2910 3010 3030 3050 3060 3130
-3160 3220 3230 3240 3300 3310 3410 3500 3530 3640
-3650 3740 3930 3940 3950 4000 4010 4030 4040
-4060 4110 4130 4200 4210 4220 4230 4250
-4320 4350 4430 4500 4510 4600 4620 4700
-4720 4740  4750 4760 4800 4810 4820
-4840 4850 4900  4950 4965 5000 5020 5100
-5110 5120 5140 5160 5260 5300 5310 5320
-5330 5350 5360 5400 5410 5420 5510 5520 5600 5610 5620 5630 5700 5800 5810 5820 5850
-5860 5900 5940 6050 6200 6220 6230 6240 6250 6260 6320
-6330 6355 6420 6440 6515 6520 6530 6600 6660 7000
-7010 7020 7140 7150 7200 7210 7220 7315 7330
-7340 7700 7720 7750 7800 7810 7950 8030 8130  8140
-8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
-8760 8800 8810 8830 8965
-9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
-# delimit cr
+foreach num of global x{
+	if `i' == 1{
+		append using value_term`y'_`num'
+	}
+	else if `i' == 2{
+		append using value_term`y'_30_`num'
+	}
+	else if `i'== 3{
+		append using value_term`y'_50_`num'	
+		}
+}	
 
-append using value_term2010_50_`num'
+if `i' == 1{
+		save value_term`y', replace
+	}
+else if `i' == 2{
+		save value_term`y'_high30, replace
+	}
+else if `i'== 3{
+		save value_term`y'_high50, replace
+}	
+}
+
+local ++1
 
 }
 
-save value_term2010_high50, replace
 
 *************************************+*************************************+**
 *************************************+*************************************+**
@@ -7191,12 +6638,10 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Appendix - Exogeneity
-*************************************+*************************************+****
+*************************************+*************************************+***
 
-clear all
-global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
 
 *** Regressing change in incidence of working long hours in the suburbs and central cities
 cd $data\ipums_micro
