@@ -5325,40 +5325,64 @@ save temp, replace
 
 /* Se observa que el autor genera varias veces las mismas variables en cada proceso de generación de la tabla. Se cree que esto es porque quiere que el código sea autocontenido, pero que este organizado de esta forma dificulta la comprensión. Se sugiere reorganizar el código para que sea más fácil de comprender.*/
 
-**************************************
-**** Three Mile evaluation
+
+*****************************************************************************
+** Evaluación a una distancia de tres millas del centro: 
+*****************************************************************************
+
 cd $data/temp_files
 u temp, clear
 
+** Información de cuales tracts se encuentran a 3 millas de distancia del centro:
 cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown3mi
 drop if _merge==2
 g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
+
+** Se junta la información para tracts que tienen una distancia menor a 3 millas de distancia del centro:
 collapse (sum) predict2010_high_cf predict2010_low_cf impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low , by( metarea downtown)
 
+*** Se genera una variable que calcula el ratio de trabajadores con altas cualificaciones respecto a bajas cualificaciones con los valores observados o los generados por el contrafactual (si mantuviera todo constante menos el valor del tiempo de los trabajadores comparando las ciudades con los suburbios):
 g ratio2010_cf=predict2010_high_cf/(predict2010_low_cf)
 g ratio2010=impute2010_high/(impute2010_low)
 g ratio1990=impute1990_high/(impute1990_low)
 
+** Se genera variable que sea el cambio en el tiempo para ambas variables generadas anteriormente:
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
+** Población para cada metarea para el año 1990:
 cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
+**  Ranking de MSA de acuerdo con cuales tienen más o menos población:
 cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
-
 sort metarea downtown
+
+** Para cada área metropolitana se genera el ratio entre esa observación y la anterior (cercana al centro y no cercana al centro):
 by metarea: g dln_ratio_ratio_cf=dln_ratio_cf-dln_ratio_cf[_n-1]
 by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
+
+
+
 ** Table 8
+***************
+
+/* Se observa que el autor en la tabla expone las medias para todos los MSA del ratio del ratio de la población con altas y bajas habilidades cercana al centro y no cercana al centro. Esto lo hace teniendo ponderando cada una de las observaciones por el tamaño de la población para darle más importancia a aquellas que tienen más población. Realiza el proceso para las 25 ciudades más grandes y para las 50 ciudades más grandes.
+
+Con este proceso el autor está intentando mostrar que solo cambiando el valor del tiempo de los trabajadores, habría un cambio en la proporción de personas con diferentes calificaciones en el centro respecto al suburbio de entre 6% y 7%. Así, resalta que el valor del tiempo si hace que las personas quieran vivir más cerca al centro, lo cual se da en mayor medida en personas con altas cualificaciones que el supone valoran más su tiempo de desplazamiento y luego logra demostrar esto empíricamente.
+ */
+
+ /* Estos resultados son interesantes no solo por lo que le aportan a su paper, sino también porque demuestra que las personas cuando empiezan a valorar más su tiempo deciden vivir a distancias cercanas al lugar de trabajo. Esto implica la importancia del diseño de ciudades que tengan en cuenta las necesidades de las personas para que tenga un mayor impacto en su bienestar. Estas ciudades deberían estar pensadas en términos de las personas que tienen menores ingresos (cuya proxy en este caso es si están altamente calificados o no), ya que se observa que hay un desplazamiento relativo de personas de mayores ingresos al centro respecto a de bajos ingresos (más adelante el autor probará si hubo gentrificación lo cual implicaría una pérdida de bienestar de las personas de bajos ingresos) (no entendido como bienestar económico). */
+ 
+ 
 * column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
 sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
 
@@ -5366,39 +5390,58 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
 sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
 
+/* Al igual que con todas las otras tablas se observa que los valores dan muy similares pero no son exactamente los mismos que los reportados en el paper. Esto se debería revisar más a profundidad en futuros intentos de replicación reorganizando los do's para que sea más claro el proceso y ver donde hay posibles errores*/
 
-**************************************
-**** Five Mile evaluation
+
+*****************************************************************************
+** Evaluación a una distancia de cinco millas del centro: 
+*****************************************************************************
+
 cd $data/temp_files
 u temp, clear
 
+** Información de cuales tracts se encuentran a 5 millas de distancia del centro:
 cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
+
+** Se junta la información para tracts que tienen una distancia menor a 5 millas de distancia del centro o mayor a 5 millas:
 collapse (sum) predict2010_high_cf predict2010_low_cf impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low , by( metarea downtown)
 
+*** Se genera una variable que calcula el ratio de trabajadores con altas cualificaciones respecto a bajas cualificaciones con los valores observados o los generados por el contrafactual (si mantuviera todo constante menos el valor del tiempo de los trabajadores comparando las ciudades con los suburbios):
 g ratio2010_cf=predict2010_high_cf/(predict2010_low_cf)
 g ratio2010=impute2010_high/(impute2010_low)
 g ratio1990=impute1990_high/(impute1990_low)
 
+** Se genera variable que sea el cambio en el tiempo para ambas variables generadas anteriormente:
 g dln_ratio_cf=ln( ratio2010_cf)-ln(ratio1990)
 g dln_ratio=ln( ratio2010)-ln(ratio1990)
 
+** Población para cada metarea para el año 1990:
 cd $data/temp_files
 merge m:1 metarea using population1990_metarea
 keep if _merge==3
 drop _merge
 
+**  Ranking de MSA de acuerdo con cuales tienen más o menos población:
 cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
+** Para cada área metropolitana se genera el ratio entre esa observación y la anterior (cercana al centro y no cercana al centro):
 sort metarea downtown
 by metarea: g dln_ratio_ratio_cf=dln_ratio_cf-dln_ratio_cf[_n-1]
 by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
+
+
+/* Se observa que el autor en la tabla expone las medias para todos los MSA del ratio del ratio de la población con altas y bajas habilidades cercana al centro y no cercana al centro. Esto lo hace teniendo ponderando cada una de las observaciones por el tamaño de la población para darle más importancia a aquellas que tienen más población. Realiza el proceso para las 25 ciudades más grandes y para las 50 ciudades más grandes.
+
+Con este proceso el autor está intentando mostrar que solo cambiando el valor del tiempo de los trabajadores, habría un cambio en la proporción de personas con diferentes calificaciones en el centro respecto al suburbio de entre 7% y 8%. Así, resalta que el valor del tiempo si hace que las personas quieran vivir más cerca al centro, lo cual se da en mayor medida en personas con altas cualificaciones que el supone valoran más su tiempo de desplazamiento y luego logra demostrar esto empíricamente.
+ */
+
 
 ** Table 8
 * column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
@@ -5407,22 +5450,9 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
 * column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
 sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
 
-*** counterfactual when skill ratio can change and rent can change, too. 
+
+ 
 cd $data/temp_files
 u impute, clear
 
