@@ -169,50 +169,80 @@ save val_time_weekly_earnings_total, replace
 
 
 
-********************************************************************************
+*******************************************************************************
 **# Data Prep Long Hour Premium
-********************************************************************************
+*******************************************************************************
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
+*Se utiliza la base de datos del US Census:
 cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
-drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
 
+**# Limpieza Base Datos:
+
+** Se eliminan las siguientes variables:
+drop wage distance tranwork trantime pwpuma ownershp ownershpd gq occ met2013 city puma rentgrs valueh bpl occsoc incwage puma1990 greaterthan40 datanum serial pernum rank ind ind2000 hhwt statefip marst occ1990
+
+** Se elimina si una persona trabaja menos de 40 horas a la semana ya que esta es la jornada laboral y se quiere estimar cuanto se trabaja por horas extras: 
 drop if uhrswork<40
+
+** Valores que no tienen sentido lógico para el ingreso total se cambian por missing o por cero: 
 replace inctot=0 if inctot<0
 replace inctot=. if inctot==9999999
 
+
+** Está trayendo los salarios nominales de 1990 y 2000 en términos de salarios reales del 2010:
+
+/*
+IPC 1990 USA: 130.7
+IPC 2000 USA: 172.2
+IPC 2010 USA: 218.056 
+*/
+
+/* Se recomienda definir el significado de los valores de las siguientes tres líneas de código a priori, ya que no se sabía que hacía referencia a los IPC para Estados Unidos */
 g inctot_real=inctot*218.056/130.7 if year==1990
 replace inctot_real=inctot*218.056/172.2 if year==2000
 replace inctot_real=inctot if year==2010
+drop inctot
 
+** Se divide entre 52 el ingreso total ya que se quiere saber cual es el ingreso semanal de los individuos. Se hace una transformación logarítmica de esta variable para reducir la varianza. 
 replace inctot_real=inctot_real/52
-
 replace inctot_real=ln(inctot_real)
-drop occ met2013 city puma rentgrs valueh bpl occsoc incwage puma1990 greaterthan40 datanum serial pernum rank ind ind2000 hhwt statefip marst inctot occ1990
 
-g val_2010=.
-g se_2010=.
-g val_2000=.
-g se_2000=.
-g val_1990=.
-g se_1990=.
+
+/* Algunas variables se eliminaban en este punto. Para optimizar el código se junto esta linea de código con la línea 24. */
+
+** Se generan nuevas variables:
+
+/* Se optimizó el proceso de generación de variables mediante loops */
+
+global ano 1990 2000 2010
+foreach x in $ano{
+	local var val se
+	foreach y in `var' {
+		gen `y'_`x'=.
+	}
+}
+
+*Se generan variables que indican el número de horas de trabajo semanales para los datos reportados para este año en particular:
+foreach x in $ano{
+	gen hours`x' = 0
+	replace hours`x' = uhrswork if year == `x'	
+}
+
 g dval=.
 g se_dval=.
-g hours1990=0
-g hours2000=0
-g hours2010=0
-replace hours1990=uhrswork if year==1990
-replace hours2000=uhrswork if year==2000
-replace hours2010=uhrswork if year==2010
 
-# delimit
-foreach num of numlist 
-30 120 130 150 205 230 310
+**# Creación Variables Long Hour Premium:
+
+
+*Los números dentro del local indican el código de las ocupaciones que el autor está teniendo en cuenta.
+* Se está generando una regresión lineal con múltiples efectos fijos dados por la interacción entre el año y diferentes características sociodemográficas. Esta regresión mide la relación entre las horas extras de trabajo de 1990, 2000 y 2010 y el ingreso total real para cada ocupación. Se almacena en una variable los coeficientes para las horas semanales de un año particular. Así, se encuentra el valor que tiene una hora extra de cada año en términos de ingreso controlando por factores sociodemográficos que no varían en el tiempo.
+*El autor utiliza en la regresión clusters a nivel de área metropolitana ya que puede haber autocorrelación entre lo no observable de los individuos que viven en el área metropolitana. 
+
+#delimit ;
+local num 30 120 130 150 205 230 310
 350 410 430 520 530 540 560 620 710 730 800
 860 1000 1010 1220 1300 1320 1350 1360 1410
 1430 1460 1530 1540 1550 1560 1610 1720
@@ -235,18 +265,23 @@ foreach num of numlist
 8220 8230 8300 8320 8350 8500 8610 8650 8710 8740
 8760 8800 8810 8830 8965
 9000 9030 9050 9100 9130 9140 9350
-9510 9600 9610 9620 9640 {;
+9510 9600 9610 9620 9640 ;
 # delimit cr
+macro dir
+foreach num in `num'{
+	
 display `num'
-qui reghdfe inctot_real hours1990 hours2000 hours2010 if occ2010==`num' & uhrswork>=40 & uhrswork<=60 [w=perwt], absorb(i.age#i.year i.sex#i.year i.educ#i.year i.race#i.year i.hispan#i.year i.ind1990#i.year) cluster(metarea)
-replace val_1990=_b[hours1990] if occ2010==`num'
-replace se_1990=_se[hours1990] if occ2010==`num'
-replace val_2000=_b[hours2000] if occ2010==`num'
-replace se_2000=_se[hours2000] if occ2010==`num'
-replace val_2010=_b[hours2010] if occ2010==`num'
-replace se_2010=_se[hours2010] if occ2010==`num'
+qui reghdfe inctot_real hours1990 hours2000 hours2010 if occ2010==`num' &  uhrswork<=60 [w=perwt], absorb(i.age#i.year i.sex#i.year i.educ#i.year i.race#i.year i.hispan#i.year i.ind1990#i.year) cluster(metarea)
+
+foreach x in $ano{
+		replace val_`x' = _b[hours`x' ] if occ2010 == `num'
+		replace se_`x' = _se[hours`x' ] if occ2010 == `num'
+		}
 }
 
+/* Se altera este proceso para que queda más claro y óptimo de realizar - se genera un local en vez de meter todos los números al comienzo del loop y se genera un loop dentro del loop anterior para optimizar el proceso. */
+
+** Se almacena el premium por ocupación a través de un collapse. Se guarda en una nueva base de datos.
 collapse (firstnm) val_1990 se_1990 val_2000 se_2000 val_2010 se_2010, by(occ2010)
 
 
