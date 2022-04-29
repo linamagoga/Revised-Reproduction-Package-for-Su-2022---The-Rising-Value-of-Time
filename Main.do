@@ -5215,41 +5215,53 @@ lincom drent
 **# Output - Counterfactual Main
 *************************************+*************************************+***
 
+*************************************+*************************************+***
+** Se generan variables necesarias para el análisis:
+*************************************+*************************************+***
 
 *** create counterfatual location share in 2010
 
+** Base de probabilidad de ocupación de los trabajadores de la ocupación para cada MSA:
 cd $data/temp_files
 u tract_impute_share, clear
 
-
+** Se junta con la base del valor del tiempo de 1990 utilizando el valor estimado por la proporción de personas que tiene esa ocupación que viven en el tract:
 cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
-
 ren counterfactual_share value_term1990
+
+** Se junta con la misma base pero para el 2010: 
 cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
 ren counterfactual_share value_term2010
 
+
+** Se hace una transformación logarítmica a las variables: 
 replace value_term1990=ln(value_term1990)
 replace value_term2010=ln(value_term2010)
 
+** Se genera una variable que sea proporción de población por ocupación para cada tract respecto al MSA en 1990 más el cambio en el valor del tiempo entre 2010 y 1990:
 g sim2010=exp(ln(impute_share1990)-value_term1990+value_term2010)
 sort occ2010 metarea gisjoin
 
+** Se genera una variable por ocupación para cada área metropolitana que sea la suma de sim2010:
 by occ2010 metarea: egen total_sim2010=sum(sim2010)
 
+** Proporción por la ocupación en el tract sobre la proporción por ocupación en el área metropolitana:
 g counterfactual_share=sim2010/total_sim2010
+
+** Se junta con base que tiene número de trabajadores por ocupación y área metropolitana:
 cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
+** Se junta con base que tiene que ocupaciones tienen alta habilidad:
 cd $data/temp_files
-
 merge m:1 occ2010 using high_skill
 keep if _merge==3
 drop _merge
@@ -5258,6 +5270,7 @@ ren count1990 count1990_2
 ren count2000 count2000_2
 ren count2010 count2010_2
 
+** Base ingreso por ocupación para los tres años: 
 cd $data/temp_files
 merge m:1 occ2010 using inc_occ_1990_2000_2010
 keep if _merge==3
@@ -5268,6 +5281,7 @@ ren count1990_2 count1990
 ren count2000_2 count2000
 ren count2010_2 count2010
 
+*** Se genera variables que indiquen como es la proporción observada y como sería el contrafactual del ratio de habilidad relativo (ratio entre el ratio de habilidades de las ciudades y de los suburbios). Esto se hace multiplicando si la ocupación es de alta o baja habilidad, el número de trabajadores por ocupación y área metropolitana para 1990 y 2010 por la proporción de población por ocupación para cada tract respecto al MSA en 1990 (valores observados) ola proporción de población por ocupación para cada tract respecto al MSA dado si se estimara la diferencia en el valor del tiempo (se estima el valor del tiempo de ese año utilizando el valor verdadero, el tiempo de viaje y si se es de alta o baja calificación):
 g impute2010_high_cf=counterfactual_share*count1990*high_skill
 g impute2010_low_cf=counterfactual_share*count1990*(1-high_skill)
 
@@ -5277,29 +5291,39 @@ g impute2010_low=impute_share2010*count2010*(1-high_skill)
 g impute1990_high=impute_share1990*count1990*high_skill
 g impute1990_low=impute_share1990*count1990*(1-high_skill)
 
+*** Se genera una variable que indique como es el cambio del ingreso promedio relativo:
 g inc1990=impute_share1990*inc_mean1990*count1990
 g inc2010_cf=counterfactual_share*inc_mean1990*count1990
 
+** En vez de tenerse por ocupación se busca que esté a nivel census tract:
 collapse (sum) impute2010_high_cf impute2010_low_cf impute2010_high impute2010_low impute1990_high impute1990_low inc1990 inc2010_cf, by(metarea gisjoin)
 
-
+** Base de densidad habitacional:
 cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
 
-replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
+** Estandarización de la variable densidad habitacional: 
+sum room_density_1mi_3mi
+return list
+scalar mean = r(mean)
+scalar sd = r(sd)
+display mean, sd
+replace room_density_1mi_3mi=(room_density_1mi_3mi-mean)/sd
 
 save impute, replace
 
 cd $data/temp_files
 u impute, clear
 
+** Se renombran las variables del contrafactual:
 g predict2010_high_cf=impute2010_high_cf
 g predict2010_low_cf=impute2010_low_cf
 
 save temp, replace
 
+/* Se observa que el autor genera varias veces las mismas variables en cada proceso de generación de la tabla. Se cree que esto es porque quiere que el código sea autocontenido, pero que este organizado de esta forma dificulta la comprensión. Se sugiere reorganizar el código para que sea más fácil de comprender.*/
 
 **************************************
 **** Three Mile evaluation
