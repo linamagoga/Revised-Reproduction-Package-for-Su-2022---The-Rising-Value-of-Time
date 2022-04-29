@@ -4690,11 +4690,9 @@ g high_dval_expected_commute=high_skill*dval_expected_commute
 
 
 *************************************+*************************************+***
-** Variable :
+** Variable para ecuación de la renta:
 *************************************+*************************************+***
 
-
-*** construct rent equation variable
 
 ***Demanda de vivienda para cada census tract:
 cd $data/temp_files
@@ -4740,32 +4738,70 @@ g ddemand_density=room_density_1mi_3mi*ddemand
 cd $data/temp_files
 save data, replace
  
-******************************************************************
+*******************************************************************************
  *** Main specification (Table 5)
+*******************************************************************************
 
 **** Regress 
 cd $data/temp_files
 u data, clear 
  
-
+***********************
  ** Panel A
- ** Worker's residential location demand
-  *ivreghdfe es regresión variable instrumental con múltiples niveles de efectos fijos.
+*********************** 
+
+/* El autor estima el el impacto que tiene en el cambio de la proporción de población por ocupación para cada tract respecto al MSA entre 2010 y 1990:
+* El valor del tiempo por el tiempo esperado de desplazamiento (el tiempo de desplazamiento en una semana) ponderado por la distribución espacial de los trabajos de cada ocupación y esto mismo para ocupaciones con altas habilidades.
+*El cambio del arriendo en el tiempo solo e interactuado con ocupaciones que requieren de altas habilidades.
+*La oferta de servicios que tenga el barrio cuya proxy es el cambio en el tiempo de la proporción de trabajadores calificados respecto a poco calificados solo e interactuado con ocupaciones que requieren de altas habilidades. */
+
+
+/*Utiliza como controles:
+*El tiempo esperado de desplazamiento y el tiempo esperado de desplazamiento para ocupaciones con altas habilidades.
+*/
+
+/*Utiliza variables instrumentales para el cambio en el arriendo y en la proporción de trabajadores calificados respecto a poco calificados:
+
+* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado por el valor de horas extras y el tiempo de viaje esperado para población con altas y bajas cualificaciones. 
+* Lo mismo pero teniendo en cuenta la información para ocupaciones que requieren altas y bajas cualificaciones.
+* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado para población con altas y bajas cualificaciones interactuado con la estandarización de la densidad de vivienda total, para altas densidades o bajas densidades para todas las ocupaciones, y ocupaciones con altas y bajas cualificaciones.
+* Cambio en la estandarización de la demanda de vivienda solo o interctuado con ocupaciones calificadas como que requieren altas cualificaciones
+  */
+  
+/*  Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
+	Se utiliza efectos fijos de área metropolitana interactuada con la ocupación (para ver el cambio en el ratio dentro de una ocupación dentro de un área metropolitana), ocupación interactuada con el cambio en el tiempo esperado de desplazamiento, ocupación interactuada con el tiempo total de viaje (para ver el cambio en el ratio dentro de una ocupación para personas cuyo cambio en el tiempo de desplazamiento y tiempo de desplazamiento fue el mismo).
+	Se utiliza el método generalizado de momentos.
+	Se agrupan los errores estándares a nivel census tract.
+  */
+
+*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
+
   # delimit
 ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute 
 (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi)
 [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
  # delimit cr
 
+ /* Se observa una congruencia con lo explicado en el paper. Se sugiere organizar de mejor forma la carpeta de replicación para que le quede más claro a la persona que está intentando hacer. De igual forma, se sugiere que el autor en el do haga una explicación más detallada de lo que está estimando en esta ecuación ya que fue difícil identificar que es lo que estaba haciendo. */
+
+/* Realizando la estimación se observa que los coeficientes encontrados con este comando dan diferentes aquellos reportados en la tabla 5. Esto se cree puede ser porque el do está desordenado, lo que hace que la generación de variables pueda ser diferente dando diferentes resultados. Otra posibilidad es que no se sepa interpretar bien el output que muestra el comando, aunque esta es menos probable. Esta mayor diferencia entre los resultados encontrados y los resultados estimados se da en mayor medida con el coeficiente del costo de desplazamiento. Se observa que dan valores parecidos en las amenidades y la renta. */
+ 
+
+/* Los siguientes comandos los utiliza para encontrar el valor de los coeficientes para el promedio de las ocupaciones que requieren empleados con bajas cualificaciones o con altas cualificaciones. */
+ 
+/* El comando lincom hace la combinación líneal de parámetros tras obtener una estimación. */
+
  * Commute cost
+ *********************** 
  
 * High-skilled
-*lincom - linear combination of parameters. After fitting a model and obtaining estimates for coefficients B1, B2,... you may want to view estimates for linear combinations of the  Bi. lincom can display estimates for any linear combination of the form c0 + c1 1 + c2 2 + ... + ck k.
 lincom dval_expected_commute + high_dval_expected_commute
 * Low-skilled
 lincom dval_expected_commute
 
+
 * Amenities
+*********************** 
 
 * High-skilled
 lincom dratio + high_skill_dratio
@@ -4773,14 +4809,19 @@ lincom dratio + high_skill_dratio
 lincom dratio
 
 * Rent
+*********************** 
 
 * High_skilled
 lincom drent + high_skill_drent
 * Low-skilled
 lincom drent
 
- 
+
+
+***********************
  * Panel B
+***********************
+ 
  ** Housing supply equation
   ivreghdfe drent room_density_1mi_3mi (ddemand_density =dln_sim_total_density dln_sim_low_total_density dln_sim_high_total_density)[w=count], absorb(i.metarea) cluster(tract_id) gmm2s
 
