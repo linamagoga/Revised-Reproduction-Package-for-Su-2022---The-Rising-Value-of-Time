@@ -2814,13 +2814,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term1990_`num', replace
 }
 
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -2911,11 +2911,11 @@ replace value2000=value2000*share
 collapse (sum) counterfactual_share=value2000, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term2000_`num', replace
 }
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3005,11 +3005,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term2010_`num', replace
 }
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3119,13 +3119,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term1990_30_`num', replace
 }
 
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3216,11 +3216,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term2010_30_`num', replace
 }
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3331,13 +3331,13 @@ replace value1990=value1990*share
 collapse (sum) counterfactual_share=value1990, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term1990_50_`num', replace
 }
 
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -3428,11 +3428,11 @@ replace value2010=value2010*share
 collapse (sum) counterfactual_share=value2010, by(gisjoin)
 
 g occ2010=`num'
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 save value_term2010_50_`num', replace
 }
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 clear
 # delimit
 foreach num of numlist 30 120 130 150 205 230 310
@@ -5764,12 +5764,10 @@ lincom drent + high_skill_drent
 lincom drent
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output - Counterfactual Main
-*************************************+*************************************+****
+*************************************+*************************************+***
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** create counterfatual location share in 2010
 
@@ -5777,13 +5775,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6012,13 +6010,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6224,13 +6222,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6534,13 +6532,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6673,13 +6671,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6804,13 +6802,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -6938,13 +6936,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2000
 keep if _merge==3
 drop _merge
@@ -7070,13 +7068,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2000
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term2000
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7272,32 +7270,35 @@ reg ln_d0 dval [w=count1990] if dval!=., r
 reg ln_d1 ln_d0 [w=count1990] if dval!=., r
 
 
-*************************************+*************************************+****
-**# Output - First Stage Regression
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
+*************************************+*************************************+***
+**# Appendix - First Stage Regression
+*************************************+*************************************+***
 
 cd $data/temp_files
-
 u skill_pop, clear
+
  cd $data/temp_files/iv
 merge m:1 gisjoin using sim_iv_total
 keep if _merge==3
 drop _merge
 
+** Se genera una variable que sea el cambio del ratio de alta respecto a bajas cualificaciones entre el 2010 y 1990 utilizando los datos observables o la simulación teniendo en cuenta solo el valor del tiempo y el tiempo esperado de desplazamiento (tiempo destinado a desplazamiento durante la semana).
 g dratio=ln(impute2010_high/impute2010_low)-ln(impute1990_high/impute1990_low)
 g dratio_sim=dln_sim_high_total - dln_sim_low_total 
 
-** Table A4
-** First Stage
-* Column 1
+**************************************
+** Tabla A4 - Primera Etapa
+**************************************
 
-reghdfe dratio dratio_sim, absorb(metarea) vce(robust)
+/* Para evaluar la relevancia de los intrumentos que está utilizando para la tabla 5 - Panel A el autor está haciendo una regresión entre el crecimiento del ratio de habildades y el valor predicho de este crecimiento. Utiliza efectos fijos de área metropolitana (al interior de un área metropolitana se observa la relación ya que está controlando por todas las características invariables en el tiempo de esta área). Utiliza errores estándares robustos. */
+
+
+* Column 1
+reghdfe dratio dratio_sim, absorb(metarea) cluster(gisjoin)
 * Column 2
 reghdfe dratio dln_sim_low_total dln_sim_high_total, absorb(metarea) vce(robust)
+
+/*En este caso ocurre lo mismo que en otras estimaciones.Se observan diferencias en las magnitudes. De igual forma, se observa que en la descripción de la tabla plantea que para tener en cuenta la posible autocorrelación agrupa los errores a nivel census tract. Esto no se observa en el código arriba descrito. */ 
 
 
 *************************************+*************************************+****
@@ -7314,13 +7315,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7556,13 +7557,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7770,13 +7771,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
@@ -7935,13 +7936,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8169,13 +8170,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8381,13 +8382,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high30
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high30
 keep if _merge==3
 drop _merge
@@ -8545,13 +8546,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -8779,13 +8780,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -8991,13 +8992,13 @@ merge m:1 gisjoin using counterfactual_I_pre_merge
 keep if _merge==3
 drop _merge
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990_high50
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010_high50
 keep if _merge==3
 drop _merge
@@ -9236,13 +9237,13 @@ cd $data/temp_files
 u tract_impute_share, clear
 
 
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term1990
 keep if _merge==3
 drop _merge
 
 ren counterfactual_share value_term1990
-cd $data/temp_files\counterfactual
+cd $data/temp_files/counterfactual
 merge 1:1 occ2010 gisjoin using value_term2010
 keep if _merge==3
 drop _merge
