@@ -12777,138 +12777,72 @@ graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(d
   graph export ny_income_quitile_distance.emf, replace
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
- ********************************************************
- ********************************************************
- ********************************************************
- 
-  *** In a map (do stata instead of ArcMap)
-
-  
+ *************************************+*************************************+***
+** Figura A6:
+*************************************+*************************************+***
 
 **** Chicago
 
-cd $data/temp_files
-u 1980_income_rank, clear
+**Para definir la forma de la figura en cuanto a en que posición se encuentran los tracts y cuál es su forma. Se hace un loop para cada uno de los años:
+local x 1980 1990 2000 2010
+foreach i of local x{
+	
+	cd $data/temp_files
+	u `i'_income_rank, clear
+	if `i' == 1980 {
+		cd $data/geographic
+		merge 1:1 gisjoin using longitude_latitude_tract`i'
+		drop _merge
+	}
+	if `i' == 1990 {
+		cd $data/geographic
+		merge 1:1 gisjoin using longitude_latitude_tract`i'
+		drop _merge
+	}
+	
+	ren gisjoin GISJOIN
 
-cd $data/geographic
-merge 1:1 gisjoin using longitude_latitude_tract1980
-drop _merge
+	merge 1:1 GISJOIN using tract`i'_shape
 
-ren gisjoin GISJOIN
+	spmap rank_income using tract`i'_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Greens) legend(pos(1)) cln(5)
+	cd $data/graph
+	graph export chicago_ranking_`i'.png, replace
+	
+}
 
-merge 1:1 GISJOIN using tract1980_shape
-
-spmap rank_income using tract1980_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
-cd $data\graph
-graph export chicago_ranking_1980.png, replace
-
-cd $data/temp_files
-u 1990_income_rank, clear
-
-cd $data/geographic
-merge 1:1 gisjoin using longitude_latitude_tract1990
-drop _merge
-
-ren gisjoin GISJOIN
-
-merge 1:1 GISJOIN using tract1990_shape
-
-spmap rank_income using tract1990_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
-cd $data\graph
-graph export chicago_ranking_1990.png, replace
-
-
-cd $data/temp_files
-u 2000_income_rank, clear
-
-ren gisjoin GISJOIN
-cd $data/geographic
-merge 1:1 GISJOIN using tract2000_shape
-
-spmap rank_income using tract2000_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
-cd $data\graph
-graph export chicago_ranking_2000.png, replace
-
-cd $data/temp_files
-u 2010_income_rank, clear
-
-ren gisjoin GISJOIN
-cd $data/geographic
-merge 1:1 GISJOIN using tract2010_shape
-
-spmap rank_income using tract2010_coord if latitude<=5180000 & latitude>=5123040 & longitude>=-9801742 & longitude<=-9743004, id(id) fcolor(Reds) legend(pos(1)) cln(5)
-cd $data\graph
-graph export chicago_ranking_2010.png, replace
 
 *****************************
 ******************************
 
 **** New York
 
-cd $data/temp_files
-u 1980_income_rank, clear
+local x 1980 1990 2000 2010
+foreach i of local x{
+	
+	cd $data/temp_files
+	u `i'_income_rank, clear
+	if `i' == 1980 {
+		cd $data/geographic
+		merge 1:1 gisjoin using longitude_latitude_tract`i'
+		drop _merge
+	}
+	if `i' == 1990 {
+		cd $data/geographic
+		merge 1:1 gisjoin using longitude_latitude_tract`i'
+		drop _merge
+	}
+	
+	ren gisjoin GISJOIN
 
-cd $data/geographic
-merge 1:1 gisjoin using longitude_latitude_tract1980
-drop _merge
+	merge 1:1 GISJOIN using tract`i'_shape
 
-ren gisjoin GISJOIN
+	sspmap rank_income using tract1980_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Greens) legend(pos(5)) cln(5)
+	cd $data/graph
+	graph export nyc_ranking_`i'.png, replace
+	
+}
 
-merge 1:1 GISJOIN using tract1980_shape
-
-spmap rank_income using tract1980_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
-cd $data\graph
-graph export nyc_ranking_1980.png, replace
-
-cd $data/temp_files
-u 1990_income_rank, clear
-
-cd $data/geographic
-merge 1:1 gisjoin using longitude_latitude_tract1990
-drop _merge
-
-ren gisjoin GISJOIN
-
-merge 1:1 GISJOIN using tract1990_shape
-
-spmap rank_income using tract1990_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
-cd $data\graph
-graph export nyc_ranking_1990.png, replace
-
-
-
-cd $data/temp_files
-u 2000_income_rank, clear
-
-ren gisjoin GISJOIN
-
-cd $data/geographic
-merge 1:1 GISJOIN using tract2000_shape
-
-spmap rank_income using tract2000_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
-cd $data\graph
-graph export nyc_ranking_2000.png, replace
-
-cd $data/temp_files
-u 2010_income_rank, clear
-
-ren gisjoin GISJOIN
-cd $data/geographic
-merge 1:1 GISJOIN using tract2010_shape
-
-spmap rank_income using tract2010_coord if latitude<=5012000 & latitude>=4949000 & longitude>=-8265000 & longitude<=-8199000, id(id) fcolor(Reds) legend(pos(5)) cln(5)
-cd $data\graph
-graph export nyc_ranking_2010.png, replace
-
+/* Se genera loop para optimizar el proceso y se describe que se hace. En estas es posible ver para cada tract como se ve el cambio en el ranking de ingresos en ambas ciudades. Como sugerencia se podría pintar el centro de un color para que así se sepa cuales son las mayores distancia y menores distancias. Esto podría ayudar al lector a comprender mejor la motivación. */
 
 
 *************************************+*************************************+****
