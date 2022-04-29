@@ -4460,21 +4460,25 @@ g ln_violent_2010=ln( crime_violent_rate2010+0.1)
 g ln_property_1990=ln( crime_property_rate1990+0.1)
 
 g ln_property_2010=ln( crime_property_rate2010+0.1)
-*************************************+*************************************+****
-**# Output - Main Regression
-*************************************+*************************************+****
- 
-  
-  clear all
-global data="/Users/linagomez/Documents/Stata/Economía Urbana/132721-V1/data"
 
+
+
+*************************************+*************************************+***
+*************************************+*************************************+***
+**# Output - Main Regression
+*************************************+*************************************+***
+*************************************+*************************************+***
+
+*************************************+*************************************+***
+** Cruce de bases de datos:
+*************************************+*************************************+***
 
 ** residential data
-cd "$data/temp_files"
+cd $data/temp_files
 u tract_impute_share, clear
 
 ** Commute time data
-cd "$data/temp_files/commute"
+cd $data/temp_files/commute
 
 merge 1:m gisjoin occ2010 using commute
 keep if _merge==3
@@ -4489,10 +4493,11 @@ drop _merge
 ren expected_commute expected_commute_2010
 ren expected_commute_1990 expected_commute
 
+/*Se genera una variable que calcule la diferencia en el tiempo de viaje esperado ente 2010 y 1990. */
 g dexpected=expected_commute_2010-expected_commute
 
 *** value of time data
-cd "$data/temp_files"
+cd $data/temp_files
 merge m:1 occ2010 using val_40_60_total_1990_2000_2010
 keep if _merge==3
 drop _merge
@@ -4500,190 +4505,249 @@ drop _merge
 drop se_1990 se_2000
 
 *** rent
-cd "$data/temp_files"
+cd $data/temp_files
 merge m:1 gisjoin using rent
 drop if _merge==2
 drop _merge
 
 *** instrument for location demand
 
+	/* Número_de_la_observación Definición
+	* 1: MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
+	* 2: BUSINESS OPERATIONS SPECIALISTS
+	* 3: FINANCIAL SPECIALISTS
+	* 4: COMPUTER AND MATHEMATICAL
+	* 5: ARCHITECTURE AND ENGINEERING
+	* 6: TECHNICIANS
+	* 7: LIFE, PHYSICAL, AND SOCIAL SCIENCE
+	* 8: COMMUNITY AND SOCIAL SERVICES
+	* 9: LEGAL
+	* 10: EDUCATION, TRAINING, AND LIBRARY
+	* 11: ARTS, DESIGN, ENTERTAINMENT, SPORTS, AND MEDIA
+	* 12: HEALTHCARE PRACTITIONERS AND TECHNICAL
+	* 13: HEALTHCARE SUPPORT
+	* 14: PROTECTIVE SERVICE
+	* 15: FOOD PREPARATION AND SERVING
+	* 16: BUILDING AND GROUNDS CLEANING AND MAINTENANCE
+	* 17: PERSONAL CARE AND SERVICE
+	* 18: SALES AND RELATED
+	* 19: OFFICE AND ADMINISTRATIVE SUPPORT
+	* 20: FARMING, FISHING, AND FORESTRY
+	* 21: CONSTRUCTION
+	* 22: EXTRACTION
+	* 23: INSTALLATION, MAINTENANCE, AND REPAIR
+	* 24: PRODUCTION
+	* 25: TRANSPORTATION AND MATERIAL MOVING
+	*/
+	
+	g occ_group=1 if occ2010>=10 & occ2010<=430
+	replace occ_group=2 if occ2010>=500 & occ2010<=730
+	replace occ_group=3 if occ2010>=800 & occ2010<=950
+	replace occ_group=4 if occ2010>=1000 & occ2010<=1240
+	replace occ_group=5 if occ2010>=1300 & occ2010<=1540
+	replace occ_group=6 if occ2010>=1550 & occ2010<=1560
+	replace occ_group=7 if occ2010>=1600 & occ2010<=1980
+	replace occ_group=8 if occ2010>=2000 & occ2010<=2060
+	replace occ_group=9 if occ2010>=2100 & occ2010<=2150
+	replace occ_group=10 if occ2010>=2200 & occ2010<=2550
+	replace occ_group=11 if occ2010>=2600 & occ2010<=2920
+	replace occ_group=12 if occ2010>=3000 & occ2010<=3540
+	replace occ_group=13 if occ2010>=3600 & occ2010<=3650
+	replace occ_group=14 if occ2010>=3700 & occ2010<=3950
+	replace occ_group=15 if occ2010>=4000 & occ2010<=4150
+	replace occ_group=16 if occ2010>=4200 & occ2010<=4250
+	replace occ_group=17 if occ2010>=4300 & occ2010<=4650
+	replace occ_group=18 if occ2010>=4700 & occ2010<=4965
+	replace occ_group=19 if occ2010>=5000 & occ2010<=5940
+	replace occ_group=20 if occ2010>=6005 & occ2010<=6130
+	replace occ_group=21 if occ2010>=6200 & occ2010<=6765
+	replace occ_group=22 if occ2010>=6800 & occ2010<=6940
+	replace occ_group=23 if occ2010>=7000 & occ2010<=7630
+	replace occ_group=24 if occ2010>=7700 & occ2010<=8965
+	replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-* MANAGEMENT, BUSINESS, SCIENCE, AND ARTS
-g occ_group=1 if occ2010>=10 & occ2010<=430
-* BUSINESS OPERATIONS SPECIALISTS
-replace occ_group=2 if occ2010>=500 & occ2010<=730
-* FINANCIAL SPECIALISTS
-replace occ_group=3 if occ2010>=800 & occ2010<=950
-* COMPUTER AND MATHEMATICAL
-replace occ_group=4 if occ2010>=1000 & occ2010<=1240
-* ARCHITECTURE AND ENGINEERING
-replace occ_group=5 if occ2010>=1300 & occ2010<=1540
-* TECHNICIANS
-replace occ_group=6 if occ2010>=1550 & occ2010<=1560
-* LIFE, PHYSICAL, AND SOCIAL SCIENCE
-replace occ_group=7 if occ2010>=1600 & occ2010<=1980
-* COMMUNITY AND SOCIAL SERVICES
-replace occ_group=8 if occ2010>=2000 & occ2010<=2060
-* LEGAL
-replace occ_group=9 if occ2010>=2100 & occ2010<=2150
-* EDUCATION, TRAINING, AND LIBRARY
-replace occ_group=10 if occ2010>=2200 & occ2010<=2550
-* ARTS, DESIGN, ENTERTAINMENT, SPORTS, AND MEDIA
-replace occ_group=11 if occ2010>=2600 & occ2010<=2920
-* HEALTHCARE PRACTITIONERS AND TECHNICAL
-replace occ_group=12 if occ2010>=3000 & occ2010<=3540
-* HEALTHCARE SUPPORT
-replace occ_group=13 if occ2010>=3600 & occ2010<=3650
-* PROTECTIVE SERVICE
-replace occ_group=14 if occ2010>=3700 & occ2010<=3950
-* FOOD PREPARATION AND SERVING
-replace occ_group=15 if occ2010>=4000 & occ2010<=4150
-* BUILDING AND GROUNDS CLEANING AND MAINTENANCE
-replace occ_group=16 if occ2010>=4200 & occ2010<=4250
-* PERSONAL CARE AND SERVICE
-replace occ_group=17 if occ2010>=4300 & occ2010<=4650
-* SALES AND RELATED
-replace occ_group=18 if occ2010>=4700 & occ2010<=4965
-* OFFICE AND ADMINISTRATIVE SUPPORT
-replace occ_group=19 if occ2010>=5000 & occ2010<=5940
-* FARMING, FISHING, AND FORESTRY
-replace occ_group=20 if occ2010>=6005 & occ2010<=6130
-* CONSTRUCTION
-replace occ_group=21 if occ2010>=6200 & occ2010<=6765
-* EXTRACTION
-replace occ_group=22 if occ2010>=6800 & occ2010<=6940
-* INSTALLATION, MAINTENANCE, AND REPAIR
-replace occ_group=23 if occ2010>=7000 & occ2010<=7630
-* PRODUCTION
-replace occ_group=24 if occ2010>=7700 & occ2010<=8965
-* TRANSPORTATION AND MATERIAL MOVING
-replace occ_group=25 if occ2010>=9000 & occ2010<=9750
 
-cd "$data/temp_files/commute"
+*** Tiempo total de viaje:
+cd $data/temp_files/commute
 merge m:1 gisjoin occ_group using commute_total
 drop _merge
 
-
+*** Variable instrumental ratio calificación población: 
 cd "$data/temp_files/iv"
 merge m:1 gisjoin occ_group using sim_iv
 keep if _merge==3
 drop _merge
 
+*** Variable instrumental renta de vivienda: 
 merge m:1 gisjoin using sim_iv_total
 keep if _merge==3
 drop _merge
 
-cd "$data/temp_files"
+*** Cambio porcentual de la proporción de personas que trabajan en ocupaciones que requieren alta habilidad respecto a baja habilidad entre el 2010 y 1990:
+cd $data/temp_files
 merge m:1 gisjoin using skill_ratio_occupation
 keep if _merge==3
 drop _merge
 
+*** ranking de la población de área metropolitana basada en el census decenial de 1990:
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
 
-cd "$data/temp_files"
+*** número de trabajadores por ocupación y área metropolitana:
+cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
 drop if count1990==.
 
+
+*** Cambio en la proporción de población por ocupación para cada tract respecto al MSA entre 2010 y 1990: 
 g dimpute=ln(impute_share2010)-ln(impute_share1990)
+
+*** Se generan tracts:
 egen tract_id=group(gisjoin)
+
+*** Se generan grupos que identifiquen cruce entre área metropolitana y ocupación y se nombra: 
 egen metarea_occ=group(metarea occ2010)
 drop year serial
 drop  count2000 count2010
 
+*** Cambio en el valor del long hour premium de 2010 respecto a 1990: 
 g dval=val_2010-val_1990
 
+*** Se multiplica la diferencia entre el valor del tiempo y el tiempo de viaje esperado: 
 g dval_expected_commute=dval*expected_commute
 
+*** Cambio en el valor de la renta entre 2010 y 1990:
 g drent=ln(rent2010+1)-ln(rent1990+1)
 
 ren count1990 count
 
-cd "$data/temp_files"
+*** Designación de nivel de habilidad para cada ocupación basado en que el 40% o más de la población empleada tenga título universitario: 
+cd $data/temp_files
 merge m:1 occ2010 using high_skill
 drop if _merge==2
 drop _merge
 
+*** Unidad de densidad de vivienda en el census tract: número de viviendas /área del tract: 
 
-cd "$data/temp_files"
+/* Lo hace para mirar la oferta de vivienda: si un barrio tiene una alta densidad de estructuras existentes, el costo marginal de construir una nueva vivienda sería mayor por lo que habría una oferta más inelástica*/
+
+cd $data/temp_files
 merge m:1 gisjoin using room_density1980_1mi
 drop if _merge==2
 drop _merge
 
-replace room_density_1mi_3mi=(room_density_1mi_3mi-8127.921)/14493.66
+
+*************************************+*************************************+***
+** Generación de variables:
+*************************************+*************************************+***
+
+/* El autor estandariza la variable restándole la media muestral y diviendo sobre su desviación estándar. Lo tenía con números, pero una persona que no conoce bien del tema puede no intuir el proceso. Por esto se modifica el comando para que queden claro de donde salen los números. */
+sum room_density_1mi_3mi
+return list
+scalar mean = r(mean)
+scalar sd = r(sd)
+display mean, sd
+replace room_density_1mi_3mi=(room_density_1mi_3mi-mean)/sd
 
 
+*** Se genera variable que múltiplique por dummy que indica si la ocupación requiere altas habilidades con el cambio en el ratio entre población con alta vs baja calificación entre 2010 y 1990: 
 g high_skill_dratio=high_skill*dratio
 
+*** Se hace mismo proceso pero multiplicando con los valores simulados (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado) para altas y bajas habilidades y el total de la población en el tract:
 g high_skill_dln_sim_high=high_skill* dln_sim_high
-
 g high_skill_dln_sim_low=high_skill* dln_sim_low
-
 g high_skill_dln_sim=high_skill*dln_sim
 
+*** Se genera variable que multiplique la estandarización de la densidad de vivienda por los valores simulados (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado) para altas y bajas habilidades y el total de la población en el tract:
+
+/* En los últimos tres aparentemente se hizo lo mismo que en los primeros tres. Parece ser que un un punto de la codificación cambio el nombre de las variables pero al ser tantos do files en donde se generan las mismas variables múltiples veces es difícil seguir el proceso que está teniendo el autor. Se sugiere que revise la organización del paquete de replicación para que sea mucho más claro para quien quiere revisarlo saber el proceso que está siguiendo.*/
 g dln_sim_density=dln_sim*room_density_1mi_3mi
-
 g dln_sim_high_density=dln_sim_high*room_density_1mi_3mi
-
 g dln_sim_low_density=dln_sim_low*room_density_1mi_3mi
-
 g dln_sim_total_density=dln_sim_total*room_density_1mi_3mi
-
 g dln_sim_high_total_density=dln_sim_high_total*room_density_1mi_3mi
-
 g dln_sim_low_total_density=dln_sim_low_total*room_density_1mi_3mi
 
 
-***
+*** Se genera variable que multiplique el cambio del valor de la renta entre 2010 y 1990 por la dummy que indica si la ocupación requiere altas habilidades:
 g high_skill_drent= high_skill*drent
+
+*** Se hace el mismo proceso pero multiplicando con los valores simulados (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado) para altas y bajas habilidades y el total de la población en el tract:
 g high_skill_dln_sim_density = high_skill*dln_sim_density
 g high_skill_dln_sim_high_density= high_skill*dln_sim_high_density 
 g high_skill_dln_sim_low_density =high_skill*dln_sim_low_density
+
+*** Se genera variable que multiplique la densidad habitacional del census tract por la dummy que indica si la ocupación requiere altas habilidades:
 g high_skill_room_density_1mi_3mi= high_skill*room_density_1mi_3mi
+
+*** Se genera una variable que multiplica la dummy de ocupación por el tiempo esperado de viaje o por la diferencia entre el valor del tiempo y el tiempo de viaje esperado:
 g high_skill_expected_commute=high_skill*expected_commute
 g high_dval_expected_commute=high_skill*dval_expected_commute
+
+
+*************************************+*************************************+***
+** Variable :
+*************************************+*************************************+***
+
+
 *** construct rent equation variable
-cd "$data/temp_files"
+
+***Demanda de vivienda para cada census tract:
+cd $data/temp_files
 merge m:1 gisjoin using ddemand
 keep if _merge==3
 drop _merge
 
-cd "$data/temp_files"
+/* No se sabe de donde se genera esta base de datos ni la siguiente. Se sugiere al autor que sea explícito de donde surgió porque puede que haya sido una base generada por él en otro do-file que no aparece en el paquete de replicación */
+
+cd $data/temp_files
 merge m:1 metarea occ2010 using trantime_metarea_occ2010
 drop _merge
 
+** Se genera una variable que sea la interacción entre el tiempo de viaje esperado y la diferencia en el tiempo de transporte entre 2010 y 1990. Luego se genera una variable que multiplique esto por las ocupaciones que requieren altas habilidades: 
 g dtran_expected_commute=dtran*expected_commute
 g high_dtran_expected_commute= high_skill*dtran_expected_commute
 
+** 
 merge m:1 occ2010 using val_time_sd_earning_total_standard
 drop _merge
 
 merge m:1 occ2010 using val_greaterthan50
 drop _merge
 
+*** Se reemplaza una variable que sea la diferencia entre el número de personas que trabajan más de 50 horas entre 2010 y 1990 para cada ocupación:
 replace ln_d=ln(greaterthan502010)-ln(greaterthan501990)
 
+*** Se genera una variable que sea la diferencia de la desviación estándar de ingresos para cada ocupación dentro de cada tract y se multiplica con el tiempo esperado de viaje:
 g dsd_expected_commute=(sd_inctot2010-sd_inctot1990)*expected_commute
+
+*** Se multiplica la variable generada por si la ocupación requiere trabajadores con altas calificaciones:
 g high_dsd_expected_commute=high_skill*dsd_expected_commute
 
+*** Se multiplica el tiempo de viaje esperado por el cambio en el número de personas que trabajan más de 50h entre 2010y 1990.
 g ln_d_expected_commute=ln_d*expected_commute
+
+*** Se multiplica variable generada por si la ocupación requiere trabajadores con altas calificaciones: 
 g high_ln_d_expected_commute=high_skill*ln_d_expected_commute
 
-cd "$temp_files"
+*** Se multiplica la densidad por la demanda de housing:
+g ddemand_density=room_density_1mi_3mi*ddemand
+
+cd $data/temp_files
 save data, replace
+ 
+******************************************************************
+ *** Main specification (Table 5)
 
 **** Regress 
-cd "$data/temp_files"
-u data, clear
-
- g ddemand_density=room_density_1mi_3mi*ddemand
- ******************************************************************
- *** Main specification (Table 5)
+cd $data/temp_files
+u data, clear 
  
+
  ** Panel A
  ** Worker's residential location demand
   *ivreghdfe es regresión variable instrumental con múltiples niveles de efectos fijos.
@@ -4928,7 +4992,7 @@ lincom room_density_1mi_3mi
 
 
 *** Long hour premium
-cd "$data/temp_files"
+cd $data/temp_files
 u val_40_60_total_1990_2000_2010, clear
 
 g dval=val_2010-val_1990
@@ -4957,7 +5021,7 @@ sum dval if high_skill==0
 
 *** Skill ratio
 
-cd "$data/temp_files"
+cd $data/temp_files
 u data, clear
 
 duplicates drop gisjoin, force
@@ -4976,7 +5040,7 @@ sum dratio
 
 *** Rent
 
-cd "$data/temp_files"
+cd $data/temp_files
 u data, clear
 
 duplicates drop gisjoin, force
@@ -4994,7 +5058,7 @@ cd "$data/geographic"
 u tract1990_tract1990_2mi, clear
 
 keep if dist<=1610
-cd "$data/temp_files"
+cd $data/temp_files
 
 ren gisjoin2 gisjoin
 
@@ -5011,14 +5075,14 @@ drop _merge
 drop gisjoin
 ren gisjoin1 gisjoin
 
-cd "$data/temp_files"
+cd $data/temp_files
 
 merge m:1 gisjoin using skill_pop_1mi
 keep if _merge==3
 drop _merge
 
 *** Merge the ingredient to compute the instrumental variable for local skill ratio
-cd "$data/temp_files"/iv
+cd $data/temp_files/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 keep if _merge==3
 drop _merge
@@ -5026,7 +5090,7 @@ drop _merge
 
 collapse (sum) population1990 population2010 impute2010_high impute2010_low impute1990_high impute1990_low sim1990_high sim1990_low sim2010_high sim2010_low, by(gisjoin)
 
-cd "$data/temp_files"
+cd $data/temp_files
 
 merge 1:1 gisjoin using tract_amenities
 keep if _merge==3
@@ -5123,7 +5187,7 @@ keep gisjoin crime_violent_rate1990 crime_property_rate1990 crime_violent_rate20
 ren gisjoin gisjoin_muni
 ren gisjoin_1 gisjoin
 
-cd "$data/temp_files"
+cd $data/temp_files
 
 merge 1:1 gisjoin using population1990
 keep if _merge==3
@@ -5137,7 +5201,7 @@ merge 1:1 gisjoin using skill_pop
 keep if _merge==3
 drop _merge
 
-cd "$data/temp_files"/iv
+cd $data/temp_files/iv
 merge m:1 gisjoin using ingredient_for_iv_amenity
 drop if _merge==2
 drop _merge
@@ -9359,7 +9423,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1950, replace
 
 **
@@ -9384,7 +9448,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1960, replace
 **
 
@@ -9409,7 +9473,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1970, replace
 
 **
@@ -9434,7 +9498,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1980, replace
 
 **
@@ -9459,7 +9523,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1990, replace
 
 ***
@@ -9486,7 +9550,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 2000, replace
 
 cd "$data/nhgis"
@@ -9511,13 +9575,13 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 2010, replace
 
 
 
 ****1960 ****
-cd "$data/temp_files"
+cd $data/temp_files
 u 1960, clear
 keep gisjoin year state metarea downtown  b8w001 
 g income=500
@@ -9635,7 +9699,7 @@ save 1960_income, replace
 
 
 **** 1970 ****
-cd "$data/temp_files"
+cd $data/temp_files
 u 1970, clear
 g income=500
 drop if c3t001==0
@@ -9754,7 +9818,7 @@ save 1970_income, replace
 
 
 *** 1980 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 1980, clear
 g income=1250
 drop if did001==0
@@ -9885,7 +9949,7 @@ replace count=0 if count==-1
 save 1980_income, replace
 
 *** 1990 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 1990, clear
 g income=2500
 drop if e4t001==0
@@ -10074,7 +10138,7 @@ save 1990_income, replace
 
 
 *** 2000 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 2000, clear
 g income=5000
 drop if gmx001==0
@@ -10200,7 +10264,7 @@ save 2000_income, replace
 
 
 *** 2010 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 2010, clear
 g income=5000
 drop if mp0e002==0
@@ -10325,20 +10389,20 @@ save 2010_income, replace
 
 *****
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank<=25
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank<=25
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -10361,20 +10425,20 @@ graph export "$data/graph/income_ratio_25.emf", replace
 *** Appendix Figures
 **** Ranking (1-10)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>=1 & rank<=10
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank>=1 & rank<=10
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -10392,20 +10456,20 @@ graph export "$data/graph"\income_ratio_1_10_5mi.emf, replace
 
 **** Ranking (11-25)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>=11 & rank<=25
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank>=11 & rank<=25
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -10425,20 +10489,20 @@ graph export "$data/graph"\income_ratio_11_25_5mi.emf, replace
 
 **** Ranking (25-50)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>25 & rank<=50
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if  rank>25 & rank<=50
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -10454,20 +10518,20 @@ g income_ratio=income1/income0
 graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
 graph export "$data/graph"\income_ratio_25_50_5mi.emf, replace
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>50
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if  rank>50
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -10511,7 +10575,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1950, replace
 
 **
@@ -10536,7 +10600,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1960, replace
 **
 
@@ -10561,7 +10625,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1970, replace
 
 **
@@ -10586,7 +10650,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1980, replace
 
 **
@@ -10612,7 +10676,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 1990, replace
 
 ***
@@ -10640,7 +10704,7 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 2000, replace
 
 cd "$data/nhgis"
@@ -10666,13 +10730,13 @@ replace downtown=1 if _merge==3
 drop if _merge==2
 drop _merge
 
-cd "$data/temp_files"
+cd $data/temp_files
 save 2010, replace
 
 
 
 ****1960 ****
-cd "$data/temp_files"
+cd $data/temp_files
 u 1960, clear
 keep gisjoin year state metarea downtown  b8w001 
 g income=500
@@ -10790,7 +10854,7 @@ save 1960_income, replace
 
 
 **** 1970 ****
-cd "$data/temp_files"
+cd $data/temp_files
 u 1970, clear
 g income=500
 drop if c3t001==0
@@ -10909,7 +10973,7 @@ save 1970_income, replace
 
 
 *** 1980 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 1980, clear
 g income=1250
 drop if did001==0
@@ -11040,7 +11104,7 @@ replace count=0 if count==-1
 save 1980_income, replace
 
 *** 1990 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 1990, clear
 g income=2500
 drop if e4t001==0
@@ -11229,7 +11293,7 @@ save 1990_income, replace
 
 
 *** 2000 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 2000, clear
 g income=5000
 drop if gmx001==0
@@ -11355,7 +11419,7 @@ save 2000_income, replace
 
 
 *** 2010 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 2010, clear
 g income=5000
 drop if mp0e002==0
@@ -11480,20 +11544,20 @@ save 2010_income, replace
 
 *****
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank<=25
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank<=25
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -11513,20 +11577,20 @@ graph export "$data/graph"\income_ratio_25_3mi.emf, replace
 
 **** Ranking (1-10)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>=1 & rank<=10
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank>=1 & rank<=10
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -11544,20 +11608,20 @@ graph export "$data/graph"\income_ratio_1_10_3mi.emf, replace
 
 **** Ranking (11-25)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>=11 & rank<=25
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if rank>=11 & rank<=25
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -11577,20 +11641,20 @@ graph export "$data/graph"\income_ratio_11_25_3mi.emf, replace
 
 **** Ranking (25-50)
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>25 & rank<=50
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if  rank>25 & rank<=50
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -11608,20 +11672,20 @@ graph export "$data/graph"\income_ratio_25_50_3mi.emf, replace
 
 
 ****1950
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 keep if rank>50
 collapse income=b0f001 [w=b0u001], by(downtown)
 g year=1950
 save temp_1950, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 foreach num of numlist 1960(10)2010 {
 u `num'_income, clear
 cd "$data/geographic"
 merge m:1 metarea using 1990_rank
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 keep if  rank>50
 collapse income [w=count], by(downtown year)
 save temp_`num', replace
@@ -11660,7 +11724,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract1950_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 1950, replace
 
 cd "$data/nhgis"
@@ -11674,7 +11738,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract1960_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 1960, replace
 
 cd "$data/nhgis"
@@ -11688,7 +11752,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract1970_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 1970, replace
 
 cd "$data/nhgis"
@@ -11702,7 +11766,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract1980_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 1980, replace
 
 cd "$data/nhgis"
@@ -11716,7 +11780,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract1990_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 1990, replace
 
 cd "$data/nhgis"
@@ -11730,7 +11794,7 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract2000_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 2000, replace
 
 cd "$data/nhgis"
@@ -11744,11 +11808,11 @@ cd "$data/geographic"
 merge 1:1 gisjoin using tract2010_metarea
 keep if _merge==3
 drop _merge
-cd "$data/temp_files"
+cd $data/temp_files
 save 2010, replace
 
 ***
-cd "$data/temp_files"
+cd $data/temp_files
 u 1950, clear
 
 cd "$data/geographic"
@@ -11770,12 +11834,12 @@ replace rent=. if rent==0
 replace hvalue=. if hvalue==0
 collapse (mean) rent (mean) hvalue, by(downtown)
 drop if downtown==.
-cd "$data/temp_files"
+cd $data/temp_files
 g year=1950
 save temp_1950, replace
 
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 1960, clear
 
 cd "$data/geographic"
@@ -11810,11 +11874,11 @@ b7p003+b7p004+b7p005+b7p006+b7p007+b7p008+b7p009+b7p010+b7p011+b7p012+b7p013);
 # delimit cr
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=1960
 save temp_1960, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 1970, clear
 
 cd "$data/geographic"
@@ -11851,12 +11915,12 @@ g rent=(15*cha001+35*cha002+45*cha003+55*cha004+65*cha005+75*cha006+85*cha007
 
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=1970
 save temp_1970, replace
 
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 1980, clear
 
 cd "$data/geographic"
@@ -11894,11 +11958,11 @@ g rent=(25*c8n001+75*c8n002+110*c8n003+130*c8n004+145*c8n005+155*c8n006
 # delimit cr
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=1980
 save temp_1980, replace
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 1990, clear
 
 cd "$data/geographic"
@@ -11944,12 +12008,12 @@ g rent=(50*es4001+125*es4002+175*es4003+225*es4004+275*es4005
 # delimit cr
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=1990
 save temp_1990, replace
 
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 2000, clear
 
 cd "$data/geographic"
@@ -11997,12 +12061,12 @@ gbe017+gbe018+gbe019+gbe020+gbe021);
 
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=2000
 save temp_2000, replace
 
 
-cd "$data/temp_files"
+cd $data/temp_files
 u 2010, clear
 drop year
 cd "$data/geographic"
@@ -12055,7 +12119,7 @@ jsxe022+jsxe023);
 # delimit cr
 drop if downtown==.
 keep downtown hvalue rent
-cd "$data/temp_files"
+cd $data/temp_files
 g year=2010
 save temp_2010, replace
 
@@ -12103,7 +12167,7 @@ drop _merge
 g total=bz8001
 keep gisjoin metarea downtown total
 g year=1950
-cd "$data/temp_files"
+cd $data/temp_files
 save 1950, replace
 
 ***** Population (top 25 MSA)
@@ -12133,7 +12197,7 @@ drop _merge
 g total=ca4001
 keep gisjoin metarea downtown total
 g year=1960
-cd "$data/temp_files"
+cd $data/temp_files
 save 1960, replace
 
 ***** Population (top 25 MSA)
@@ -12163,7 +12227,7 @@ drop _merge
 g total=cy7001
 keep gisjoin metarea downtown total
 g year=1970
-cd "$data/temp_files"
+cd $data/temp_files
 save 1970, replace
 
 ***** Population (top 25 MSA)
@@ -12193,7 +12257,7 @@ drop _merge
 g total=c7l001
 keep gisjoin metarea downtown total
 g year=1980
-cd "$data/temp_files"
+cd $data/temp_files
 save 1980, replace
 
 ***** Population (top 25 MSA)
@@ -12223,7 +12287,7 @@ drop _merge
 g total=et1001
 keep gisjoin metarea downtown total
 g year=1990
-cd "$data/temp_files"
+cd $data/temp_files
 save 1990, replace
 
 cd "$data/nhgis"
@@ -12252,7 +12316,7 @@ drop _merge
 g total=fl5001
 keep gisjoin metarea downtown total
 g year=2000
-cd "$data/temp_files"
+cd $data/temp_files
 save 2000, replace
 
 cd "$data/nhgis"
@@ -12281,11 +12345,11 @@ drop _merge
 g total=mnte001
 keep gisjoin metarea downtown total
 g year=2010
-cd "$data/temp_files"
+cd $data/temp_files
 save 2010, replace
 
 
-cd "$data/temp_files"
+cd $data/temp_files
 clear
 append using 1950
 append using 1960
