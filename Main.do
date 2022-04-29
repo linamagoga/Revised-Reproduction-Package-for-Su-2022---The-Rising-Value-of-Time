@@ -21,7 +21,7 @@ global table= "/Users/linagomez/Documents/Stata/Economia_Urbana/Revision_Codigo_
 *** Income measure for housing demand measure
 
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
@@ -58,7 +58,7 @@ save inc_occ_1990_2000_2010, replace
 *** Occupation METAREA count
 
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
@@ -80,7 +80,7 @@ cd $data/temp_files
 save count_metarea, replace
 ******************************
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
@@ -106,7 +106,7 @@ save occ2010_count, replace
 
 
 ****************************
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
@@ -136,7 +136,7 @@ save occ2010_count_male, replace
 
 
 *** compute log wage for every state
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp, clear
 
 keep if uhrswork>=30
@@ -176,7 +176,7 @@ save val_time_weekly_earnings_total, replace
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -264,7 +264,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 ***
 * generate occupation share per industry by year using the IPUMS microdata
-cd $data\ipums_micro
+cd $data/ipums_micro
 use 1990_2000_2010_temp, clear
 
 cd $data/temp_files
@@ -1553,7 +1553,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** Generate crosswalk between occupation group and occupation
 *** 1990's crosswalk between occupation group and 1990's occupation
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp if year==1990, clear
 
 *** generate occupation groups that link occ1990 to the nhgis 1990 version occupation group
@@ -1613,7 +1613,7 @@ save occ_occ_group1990, replace
 ***************************
 **2000
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp if year==2000, clear
 
 *** generate occupation groups that link occ1990 to the nhgis 1990 version occupation group
@@ -1690,7 +1690,7 @@ save occ_occ_group2000, replace
 ******************************
 ******************************
 ** 2010
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp if year==2010, clear
 
@@ -2174,7 +2174,7 @@ save tract_impute_share, replace
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -2202,7 +2202,7 @@ cd $data/temp_files
 save high_skill, replace
 
 ***
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -2229,7 +2229,7 @@ cd $data/temp_files
 
 save high_skill_30, replace
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -3469,110 +3469,156 @@ outreg2 using Tabla_6, tex label append noaster nocons
   
 /* Se adiciona el código para exportar las tablas. Se observa que el autor hace las estimaciones con los comandos reghdfe y ivreghdfe. Con este comando no es posible hacer estimaciones por el método generalizado de momentos que es 
 el método que el afirma utilizar en su paper. Esto puede ser porque el método de momentos en algunos casos es similar a una estimación por mínimos cuadrados ordinarios. Sin embargo, es importante que el autor aclare esto en su apéndice. La documentación del comando ivreghdfe no es lo suficientemente completa. */
+
+*************************************+*************************************+***
     
 *************************************+*************************************+***
 **# Output -  Motivation
 *************************************+*************************************+***
+*************************************+*************************************+***
+
+/* Se comenta solo para la tabla 3 del paper.*/
+
+*************************************+*************************************+***
+** Generación de variables necesarias para la estimación
+*************************************+*************************************+***
 
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
-
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
+** Se mantienen horas de trabajo mayores a 30, hombres, entre 25 y 60, y solo se mantienen las observaciones para los años 1990 y 2010. 
 keep if uhrswork>=30
 
 keep if sex==1
 keep if age>=25 & age<=65
 keep if year==1990 | year==2010
 
+** Se limpia la base:
 drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
-
 drop if uhrswork==0
 replace inctot=0 if inctot<0
 replace inctot=. if inctot==9999999
 
+
+
+** Está trayendo los salarios nominales de 1990 y 2000 en términos de salarios reales del 2010:
+
+/*
+IPC 1990 USA: 130.7
+IPC 2000 USA: 172.2
+IPC 2010 USA: 218.056 
+*/
+
+/* Se recomienda definir el significado de los valores de las siguientes tres líneas de código a priori, ya que no se sabía que hacía referencia a los IPC para Estados Unidos */
 g inctot_real=inctot*218.056/130.7 if year==1990
 replace inctot_real=inctot*218.056/172.2 if year==2000
 replace inctot_real=inctot if year==2010
 
+** Se divide entre 52 el ingreso total ya que se quiere saber cual es el ingreso semanal de los individuos. 
 replace inctot_real=inctot_real/52
 
+** Se genera una dummy que represente si la persona trabaja más de 50 horas a la semana. Para cada ocupación se define cual es el promedio de personas que trabajan más de 50 horas a la semana. 
 g greaterthan50=0
 replace greaterthan50=1 if uhrswork>=50
 collapse greaterthan50, by(year occ2010)
 
+** Se almacena ese promedio para cada año dependiendo de las deficiones de la ocupación para 2010:
 reshape wide greaterthan50, i(occ2010) j(year)
 
+** Se genera variable que indique cual fue el cambio en el promedio de personas que trabajaron en el 2010 respecto a 1990 más de 50 horas a la semana.
 g ln_d=ln( greaterthan502010)-ln( greaterthan501990)
 
+** Se junta con base que identifica ingresos por ocupación:
 cd $data/temp_files
-
 merge 1:1 occ2010 using inc_occ_1990_2000_2010
 drop _merge
 
+** Se limpia la base:
 drop inc_mean1990 inc_mean2000 inc_mean2010 wage_real1990 wage_real2000 wage_real2010
 
 cd $data/temp_files
 
+** Se junta con la base que almacena el valor de una hora extra para cada ocupación: 
 merge 1:1 occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
 
+**Variable que representa el cambio del valor del tiempo entre 2010 y 1990.
 g dval=val_2010-val_1990
 
-
 cd $data/temp_files
-
 save reduced_form, replace
-*****
-*** Regress change in long hours on long hour premium 
+
+*************************************+*************************************+***
+** Tabla 3: Columna 1
+*************************************+*************************************+***
+ 
 cd $data/temp_files
 u reduced_form, clear
-** Table 3
-* Column 1
+
+* Column 1: cambio del valor del tiempo respecto al cambio en el promedio de personas que trabajaron en el 2010 respecto a 1990 más de 50 horas a la semana.
+*Errores estándares robustos, ponderado por la población en cada ocupación
+
 reg ln_d dval [w=count1990] if dval!=., r
 
 
-**** Change in central city share on change in long hours
+*************************************+*************************************+***
+** Generación de variables necesarias para la estimación
+*************************************+*************************************+***
 
+** Skill ratio para cada tract: 
 cd $data/temp_files
- u tract_impute.dta, clear
- cd $data/geographic
- merge m:1 gisjoin using tract1990_downtown5mi
+u tract_impute.dta, clear
+
+** Identificación de tracts a menos de 5 millas del centro:
+cd $data/geographic
+merge m:1 gisjoin using tract1990_downtown5mi
 drop if _merge==2
 g downtown=0
 replace downtown=1 if _merge==3
 drop _merge
 
+** Ranking de población de área metropolitana:
 cd $data/geographic
-
 merge m:1 metarea using 1990_rank
 keep if _merge==3
 drop _merge
 
 drop serial year
 
+** Se suman los valores de acuerdo con ocupación, área metropolitana, si se está cerca o lejos del centro y el rank de la población del área metropolitana a comparación de las otras áreas metropolitanas: 
 collapse (sum) impute1990 impute2000 impute2010, by(occ2010 metarea rank downtown)
+
+** Proporción del ratio de esa área en el centro por ocupación respecto al ratio de esa área en los suburbios por ocupación para cada año: 
 by occ2010 metarea: g ratio1990=impute1990/(impute1990+impute1990[_n-1])
 by occ2010 metarea: g ratio2000=impute2000/(impute2000+impute2000[_n-1])
 by occ2010 metarea: g ratio2010=impute2010/(impute2010+impute2010[_n-1])
 
 keep occ2010 metarea downtown ratio1990 ratio2000 ratio2010 rank
 
+** Se genera el cambio en la proporción encontrada antes:
 g dratio=ln(ratio2010)-ln(ratio1990)
 
+** Se pega con base que se generó anteriormente: 
 cd $data/temp_files
 merge m:1 occ2010 using reduced_form
 keep if _merge==3
 drop _merge
-
 drop count*
+
+** Se pega con base tiene la población para cada área metropolitana
 cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
-drop _merge
+drop _merge 
+
+
+**** Change in central city share on change in long hours
+
+*************************************+*************************************+***
+** Tabla 2 y 3
+*************************************+*************************************+***
+ 
 
 * Table 2
 * Column 1 - 3 
@@ -3581,40 +3627,72 @@ reg dratio i.metarea ln_d [ w=count1990] if dval!=. & rank<=25 & downtown==1, cl
 reg dratio i.metarea ln_d [ w=count1990] if dval!=. & downtown==1, cluster(metarea)
 
 ** Table 3
+***************
+
+/* 
+*Regresión entre el cambio en el tiempo de la proporción relativa del ratio de altas vs bajas habilidades entre el centro y los suburbios con el cambio en el valor del tiempo: 
+*Utiliza efectos fijos de área metropolitana
+*Pondera por la población del área metropolitana de 1990.
+*Lo hace solo para aquellas observaciones que se ubican a menos de 5 millas del centro.
+*Lo hace para las 10 ciudades más grandes o las 25 ciudades más grandes.
+*Agrupa los errores estándar a nivel área metropolitana ya que cree que los errores dentro del área metropolitana para las observaciones podrían estar correlacionados. 
+*/
+
+
 * Column 2-4
 reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1 & rank<=10, cluster(metarea)
 reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1 & rank<=25, cluster(metarea)
 reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1, cluster(metarea)
 
+*************************************+*************************************+***
+** Generación de variables necesarias para la estimación
+*************************************+*************************************+***
 
 **** Commute time on change in long hours
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
+** Se mantienen horas de trabajo mayores a 30, hombres, entre 25 y 60, y solo se mantienen las observaciones para los años 1990 y 2010. 
 keep if uhrswork>=30
 
-*keep if rank<=25
 keep if sex==1
 keep if age>=25 & age<=65
 keep if year==1990 | year==2010
 
+** Se hace la transformación logaritmica del tiempo de transporte y se agrupa a nivel ocupación, área metropolitana, tamaño del área metropolitana por la cantidad de población y año.
 replace trantime=ln(trantime)
 collapse trantime, by(year occ2010 metarea rank)
-
 reshape wide trantime, i(occ2010 metarea) j(year)
 
+** Se genera la diferencia de tiempo de transporte entre ambos periodos de tiempo.
 g dtran= trantime2010-trantime1990
 
+** Se pega con base generada anteriormente:
 cd $data/temp_files
 merge m:1 occ2010 using reduced_form
 drop _merge
 
+** Se pega con base que tiene número de población para cada área metropolitana: 
 drop count*
 cd $data/temp_files
 merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
+
+
+
+*************************************+*************************************+***
+** Tabla 2 y 3
+*************************************+*************************************+***
+
+/* 
+*Se está haciendo una regresión entre el cambio en el tiempo de transporte y el cambio en el valor del tiempo ponderado por la cantidad de población de 1990.
+*Se utiiliza efectos fijos de área metropolitana.
+*Se hace para las 10 ciudades con mayor población o para las 25 ciudades con mayor población.
+*Se agrupan los errores estándares a nivel área metropolitana porque asume que los errores se autocorrelacionan entre ocupaciones (puede que algo que explique el tiempo de transporte de una ocupación no observable también explique el tiempo de otra. Ejemplo: el trancón afecta el tiempo de transporte de ambas ocupaciones).
+*/
+
 
 * Table 2
 * Column 4-6 
@@ -5881,7 +5959,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
 ** value of time overall (without controling for education)
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -6698,7 +6776,7 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 
 
 *** Regressing change in incidence of working long hours in the suburbs and central cities
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 keep if uhrswork>=30
@@ -8646,7 +8724,7 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -8678,7 +8756,7 @@ save occ2010_dg, replace
 
 ****************************
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp, clear
 
@@ -12360,7 +12438,7 @@ clear all
 global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 keep if uhrswork>=30
@@ -12401,7 +12479,7 @@ cd $data/temp_files
 save tile_1990_2010, replace
 
 ****
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1980_1990, clear
 
 keep if uhrswork>=30
@@ -12482,7 +12560,7 @@ by wage_tile: g dg30=greaterthan50-greaterthan50[_n-3]
  
 *** Generate change in commute time by group
 ** By wage decile
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 keep if uhrswork>=30
@@ -12526,7 +12604,7 @@ collapse ln_trantime [w=perwt], by(year wage_tile)
 save commute_tile_1990_2010, replace
 
 ****
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1980_1990, clear
 
 keep if uhrswork>=30
@@ -12855,7 +12933,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
 *** Financial specialists
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp if occ2010==120 | occ2010==800| occ2010==4820, clear
 
@@ -12907,7 +12985,7 @@ graph export financial_log_earnings.emf, replace
 
 ***
 **** lawyer
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp if occ2010==2100, clear
 
@@ -12958,7 +13036,7 @@ graph export lawyer_log_earnings.emf, replace
 
 ***
 **** Office administrator
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp if occ2010==5700, clear
 
@@ -13008,7 +13086,7 @@ legend(lab(1 "1990") lab(2 "2010")) xtitle(Weekly hours worked) ytitle(Weekly re
 graph export office_log_earnings.emf, replace
 
 **** Teacher
-cd $data\ipums_micro
+cd $data/ipums_micro
 
 u 1990_2000_2010_temp if occ2010==2320 | occ2010==2310, clear
 
@@ -13070,7 +13148,7 @@ global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 *** Plot the change in commute time by skill content
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 cd $data/geographic
@@ -13130,7 +13208,7 @@ label value college college_lab
 
 *** Plot the change in incidence of work long hours by skill content
 
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 cd $data/geographic
@@ -13192,7 +13270,7 @@ label value college college_lab
 
 *** Generate change in long hour incidence by group
 ** By wage decile
-cd $data\ipums_micro
+cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
 keep if uhrswork>=30
