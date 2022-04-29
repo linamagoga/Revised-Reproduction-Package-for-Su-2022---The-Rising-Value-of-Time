@@ -12684,136 +12684,86 @@ graph export $data\graph\hour_trend_1962_2016.png, replace
 
 
   
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Appendix - Income Rank
-*************************************+*************************************+****
- 
-global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
-** 1980 1990 2000 2010 income comes from demographic do file. 
+*************************************+*************************************+***
+** Generación de variables necesarias para hacer el mapa:
+*************************************+*************************************+***
+
+/* Se optimiza el proceso realizando un loop para que sea más eficiente las líneas de código*/
+
 clear all
 
+** Ingreso para 1980, 1990, 2000 y 2010:
 cd $data/temp_files
 
-u 1980_income, clear
 
-collapse income [w=count], by(metarea gisjoin)
-egen rank_income=xtile(income), n(5) by(metarea)
+** Para cada base de ingreso de cada año, calcule el promedio ponderado por
+	*población del ingreso para cada census tract de cada área metropolitana. 
+	*Cree una variable que diga en que quintil está ese promedio dentro del
+	*área metropolitana:
+local x 1980 1990 2000 2010
+foreach i of local x{
+	u `i'_income, clear
+	collapse income [w=count], by(metarea gisjoin)
+	egen rank_income=xtile(income), n(5) by(metarea)
+	keep gisjoin rank_income
+	save `i'_income_rank, replace	
+}
 
-keep gisjoin rank_income
 
-save 1980_income_rank, replace
+** Para cada base de cada año que ordena el promedio de ingreso de cada tract en quintiles de acuerdo con su posición respecto al área metropolitana, pegue la base que identifica cuales tracts están a una distancia menor a 200 millas del centro y la base que identifica el tract a que área metropolitana pertenece:
+local x 1980 1990 2000 2010
+foreach i of local x{
+	
+	cd $data/temp_files
+	u `i'_income_rank, clear
+	cd $data/geographic
+	merge 1:1 gisjoin using tract`i'_downtown_200mi
+	keep if _merge==3
+	drop _merge
 
-u 1990_income, clear
+	merge 1:1 gisjoin using tract`i'_metarea
+	keep if _merge==3
+	drop _merge
+	replace distance=distance/1609
+	cd $data/temp_files
+	g year=`i'
+	save temp`i', replace
+	
+}
 
-collapse income [w=count], by(metarea gisjoin)
-egen rank_income=xtile(income), n(5) by(metarea)
-
-keep gisjoin rank_income
-
-save 1990_income_rank, replace
-
-u 2000_income, clear
-
-collapse income [w=count], by(metarea gisjoin)
-egen rank_income=xtile(income), n(5) by(metarea)
-
-keep gisjoin rank_income
-
-save 2000_income_rank, replace
-
-u 2010_income, clear
-
-collapse income [w=count], by(metarea gisjoin)
-egen rank_income=xtile(income), n(5) by(metarea)
-
-keep gisjoin rank_income
-
-save 2010_income_rank, replace
-
-**** income rank vs distance to downtown
-
-cd $data/temp_files
-u 1980_income_rank, clear
-cd $data/geographic
-merge 1:1 gisjoin using tract1980_downtown_200mi
-keep if _merge==3
-drop _merge
-
-merge 1:1 gisjoin using tract1980_metarea
-keep if _merge==3
-drop _merge
-replace distance=distance/1609
-cd $data/temp_files
-g year=1980
-save temp1980, replace
-
-cd $data/temp_files
-u 1990_income_rank, clear
-cd $data/geographic
-merge 1:1 gisjoin using tract1990_downtown_200mi
-keep if _merge==3
-drop _merge
-
-merge 1:1 gisjoin using tract1990_metarea
-keep if _merge==3
-drop _merge
-
-replace distance=distance/1609
-cd $data/temp_files
-g year=1990
-save temp1990, replace
-
-cd $data/temp_files
-u 2000_income_rank, clear
-cd $data/geographic
-merge 1:1 gisjoin using tract2000_downtown_200mi
-keep if _merge==3
-drop _merge
-
-merge 1:1 gisjoin using tract2000_metarea
-keep if _merge==3
-drop _merge
-
-replace distance=distance/1609
-cd $data/temp_files
-g year=2000
-save temp2000, replace
-
-cd $data/temp_files
-u 2010_income_rank, clear
-cd $data/geographic
-merge 1:1 gisjoin using tract2010_downtown_200mi
-keep if _merge==3
-drop _merge
-
-merge 1:1 gisjoin using tract2010_metarea
-keep if _merge==3
-drop _merge
-
-replace distance=distance/1609
-cd $data/temp_files
-g year=2010
-save temp2010, replace
-
+** Junte las bases de datos creadas anteriormente:
 clear 
-
 u temp1980, clear
 append using temp1990
 append using temp2000
 append using temp2010
 
-cd $data\graph
+
+*************************************+*************************************+***
+** Gráfica A7:
+*************************************+*************************************+***
+
+/* En este caso se realiza una suavización tipo kernel con polinomios locales utilizando un kernel tipo Epanechnikov. Se observa que este es un método también visto en la clase para poder observar de mejor forma la distribución de los datos.
+
+En este caso en el eje vertical utiliza el ranking del ingreso por quintil y en el eje horizontal la distancia al centro cuando es menor a 30 millas. Esto lo hace para cada uno de los años. Así, se podría observar como está la concentración de ingresos dependiendo de la distancia al MSA (Chicago o Nueva York). Esta gráfica al comienzo parece contraintuitiva porque al comienzo no se sabe como interpretarla. Se podría hacer una gráfica más amigable con el lector que no conoce mucho del tema como hacer gráficas de concentración de ingreso del tract respecto a la distancia para cada quintil. Con esta sugerencia se harían gráficas separadas para los 4 años, Sin embargo, lo interesante de esta gráfica que el autor realiza es que permite ver como cambia esta distribución en el tiempo. Se observa que hay una mayor concentración de ingreso promedio en tracts que se encuentran más cerca al centro y disminuye el ingreso promedio hasta una distancia de 10 para luego aumentar hasta tracts cuyo ingreso promedio está en el cuarto quintil cuando la distancia al centro del tract es mayor a 10. Se observa que en 1980 no había el patrón descrito previamente (en el centro vivían personas de ingresos bajos). Esto cambió en el 90 y se fue pronunciando cada vez más cada década. Este patrón es más pronunciado para Chicago que para Nueva York. Se observa un crecimiento más rápido respecto a la distancia en Chicago que en Nueva York donde el cambio es más paulatino.
+ */
+
+cd $data/graph
 # delimit 
 graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(dash)) 
 (lpoly rank_income distance if distance<=30  & year==1990, lpattern(shortdash) )
 (lpoly rank_income distance if distance<=30 & year==2000 , lpattern(longdash_dot))
  (lpoly rank_income distance if distance<=30 & year==2010, lcolor(black)) if metarea==160,
  legend(lab(1 "1980") lab(2 "1990") lab(3 "2000") lab(4 "2010") ) yscale(range(1 5)) ylabel(1(1)5)
- xtitle(distance to downtown (mile)) ytitle(Income quintile) graphregion(color(white))
+ xtitle(distancia al centro (milla)) ytitle(Quintil de Ingreso) scheme(s1color)
  ;
  # delimit cr
  graph export chicago_income_quitile_distance.emf, replace
+ 
  
  # delimit 
 graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(dash)) 
@@ -12821,12 +12771,21 @@ graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(d
 (lpoly rank_income distance if distance<=30 & year==2000 , lpattern(longdash_dot))
  (lpoly rank_income distance if distance<=30 & year==2010, lcolor(black)) if metarea==560,
  legend(lab(1 "1980") lab(2 "1990") lab(3 "2000") lab(4 "2010") )  yscale(range(1 5)) ylabel(1(1)5)
- xtitle(distance to downtown (mile)) ytitle(Income quintile) graphregion(color(white))
+ xtitle(distancia al centro (milla)) ytitle(Quintil de Ingreso) scheme(s1color)
  ;
  # delimit cr
   graph export ny_income_quitile_distance.emf, replace
 
- 
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
  ********************************************************
  ********************************************************
  ********************************************************
