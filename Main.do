@@ -2022,94 +2022,46 @@ save tract_impute_share, replace
 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Data Prep -  High Skill Share
-*************************************+*************************************+****
+*************************************+*************************************+***
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+/*Se optimiza el proceso de esta base mediante un loop. Se generan diferentes bases donde se tiene si la proporción de personas con altas habilidades para cada ocupación es mayor a un valor. Este proceso se hace una proporción mayor a 0.3, 0.4 o 0.5.*/
 
-cd $data/ipums_micro
 
-u 1990_2000_2010_temp, clear
-
-keep if year==1990
-keep if uhrswork>=30
-replace inctot=0 if inctot<0
-replace inctot=. if inctot==9999999
-
-g inctot_real=inctot*218.056/130.7 if year==1990
-replace inctot_real=inctot*218.056/172.2 if year==2000
-replace inctot_real=inctot if year==2010
-
-replace inctot_real=inctot_real/52
-
-g college=0
-replace college=1 if educ>=10 & educ<.
-
-collapse college, by(occ2010)
-
-ren college college_share
-g high_skill=0
-replace high_skill=1 if college_share>=0.4
-cd $data/temp_files
-
-save high_skill, replace
-
-***
-cd $data/ipums_micro
-
-u 1990_2000_2010_temp, clear
-
-keep if year==1990
-keep if uhrswork>=30
-replace inctot=0 if inctot<0
-replace inctot=. if inctot==9999999
-
-g inctot_real=inctot*218.056/130.7 if year==1990
-replace inctot_real=inctot*218.056/172.2 if year==2000
-replace inctot_real=inctot if year==2010
-
-replace inctot_real=inctot_real/52
-
-g college=0
-replace college=1 if educ>=10 & educ<.
-
-collapse college, by(occ2010)
-
-ren college college_share
-g high_skill=0
-replace high_skill=1 if college_share>=0.3
-cd $data/temp_files
-
-save high_skill_30, replace
-
-cd $data/ipums_micro
-
-u 1990_2000_2010_temp, clear
-
-keep if year==1990
-keep if uhrswork>=30
-replace inctot=0 if inctot<0
-replace inctot=. if inctot==9999999
-
-g inctot_real=inctot*218.056/130.7 if year==1990
-replace inctot_real=inctot*218.056/172.2 if year==2000
-replace inctot_real=inctot if year==2010
-
-replace inctot_real=inctot_real/52
-
-g college=0
-replace college=1 if educ>=10 & educ<.
-
-collapse college, by(occ2010)
-
-ren college college_share
-g high_skill=0
-replace high_skill=1 if college_share>=0.5
-cd $data/temp_files
-
-save high_skill_50, replace
+forvalues x=0.3(0.1)0.5{
+	
+	display `x'
+	
+	** Se abre la base:
+	cd $data/ipums_micro
+	u 1990_2000_2010_temp, clear
+	
+	**Se genera una variable que indica si la persona tiene un número alto
+	* de años de educación definido por más de 4 años de educación superior:
+	g college=0
+	replace college=1 if educ>=10 & educ<.
+	
+	**La variable educación es una categórica. Se saca la media de la 
+	* variable universidad que representa la proporción de personas que tienen
+	* universidad de acuerdo con la ocupación en la que trabajan:
+	collapse college, by(occ2010)
+	
+	**Si la proporción de personas en esa ocupación es mayor al 40% se dice 
+	* que esa ocupación representa una de altas habilidades. Se genera la 
+	* variable que representa esto:
+	ren college college_share
+	g high_skill=0
+	replace high_skill=1 if college_share>=`x'	
+	** Se almacena en una nueva base de datos:
+	cd $temp/temp_files
+	if `x' == 0.4{
+		save high_skill, replace
+	}
+	else{
+		save high_skill_`x', replace
+	}	
+}
 
 *************************************+*************************************+****
 **# Data Prep -  Skill Ratio
