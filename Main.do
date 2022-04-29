@@ -6779,28 +6779,37 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
 
+** Se elimina si una persona trabaja menos de 30 horas a la semana: 
 keep if uhrswork>=30
 
-keep if sex==1
-keep if age>=25 & age<=65
-keep if year==1990 | year==2010
-
-drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
-
-drop if uhrswork==0
+** Valores que no tienen sentido lógico para el ingreso total se cambian por missing o por cero: 
 replace inctot=0 if inctot<0
 replace inctot=. if inctot==9999999
 
+** Está trayendo los salarios nominales de 1990 y 2000 en términos de salarios reales del 2010:
+
+/*
+IPC 1990 USA: 130.7
+IPC 2000 USA: 172.2
+IPC 2010 USA: 218.056 
+*/
+
+/* Se recomienda definir el significado de los valores de las siguientes tres líneas de código a priori, ya que no se sabía que hacía referencia a los IPC para Estados Unidos */
 g inctot_real=inctot*218.056/130.7 if year==1990
 replace inctot_real=inctot*218.056/172.2 if year==2000
 replace inctot_real=inctot if year==2010
+drop inctot
 
+** Se divide entre 52 el ingreso total ya que se quiere saber cual es el ingreso semanal de los individuos. Se hace una transformación logarítmica de esta variable para reducir la varianza. 
 replace inctot_real=inctot_real/52
+replace inctot_real=ln(inctot_real)
 
+** Se genera una dummy que indique si la persona trabaja más o menos de 50 horas a la semana:
 g greaterthan50=0
 replace greaterthan50=1 if uhrswork>=50
 
 
+** Se pega con base que tiene pumas a menos de 5 millas del centro. 
 cd $data/geographic
 merge m:1 statefip puma1990 using puma1990_downtown_5mi
 g downtown=0
@@ -6811,31 +6820,43 @@ merge m:1 statefip puma using puma_downtown_5mi
 replace downtown=1 if _merge==3
 drop _merge
 
+** Población que trabaja más de 50 horas por ocupación, centro y año: 
 collapse greaterthan50, by(year occ2010 downtown)
 drop if year==.
 reshape wide greaterthan50, i(occ2010 downtown) j(year)
 
-
+** Se genera el cambio de esta población entre 2010 y 1990:
 g ln_d=ln( greaterthan502010)-ln( greaterthan501990)
 
+** Se agrupa respecto a ocupación y si se está cerca al centro o no: 
 drop greaterthan501990 greaterthan502010
 reshape wide ln_d, i(occ2010) j(downtown)
+
+
 reg ln_d1 ln_d0
 
-
+** Número de personas por ocupación en 2010: 
 cd $data/temp_files
 merge 1:1 occ2010 using occ2010_count
 drop _merge
 
-
-******** Table A3
-*** Regressing change in incidence of working long hour on changing LHP
+** Valor del tiempo:
 cd $data/temp_files
-
 merge 1:1 occ2010 using val_40_60_total_1990_2000_2010
 drop _merge
 
 g dval=val_2010-val_1990 
+
+**************
+** Table A3
+**************
+
+/* 
+*Regresión entre la proporción de personas en la ocupación que están cerca al centro (no cerca al centro) respecto al valor del tiempo. Regresión entre la proporción de personas en la ocupación que están cerca al centro respecto a la proporción de personas que no están cerca al centro. Esto lo pondera por la población en 1990. 
+* Se utilizan errores estándares robustos por si hay heterocedasticidad de los errores.
+
+*/
+
 
 ** Column 1
 reg ln_d1 dval [w=count1990] if dval!=., r
