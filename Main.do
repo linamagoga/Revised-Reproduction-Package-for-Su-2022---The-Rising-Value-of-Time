@@ -4662,7 +4662,7 @@ g high_skill_dln_sim_high=high_skill* dln_sim_high
 g high_skill_dln_sim_low=high_skill* dln_sim_low
 g high_skill_dln_sim=high_skill*dln_sim
 
-*** Se genera variable que multiplique la estandarización de la densidad de vivienda por los valores simulados (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado) para altas y bajas habilidades y el total de la población en el tract:
+*** Se genera variable que multiplique la estandarización de la densidad habitacional por los valores simulados (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado) para altas y bajas habilidades y el total de la población en el tract:
 
 /* En los últimos tres aparentemente se hizo lo mismo que en los primeros tres. Parece ser que un un punto de la codificación cambio el nombre de las variables pero al ser tantos do files en donde se generan las mismas variables múltiples veces es difícil seguir el proceso que está teniendo el autor. Se sugiere que revise la organización del paquete de replicación para que sea mucho más claro para quien quiere revisarlo saber el proceso que está siguiendo.*/
 g dln_sim_density=dln_sim*room_density_1mi_3mi
@@ -4765,7 +4765,7 @@ u data, clear
 * Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado por el valor de horas extras y el tiempo de viaje esperado para población con altas y bajas cualificaciones. 
 * Lo mismo pero teniendo en cuenta la información para ocupaciones que requieren altas y bajas cualificaciones.
 * Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado para población con altas y bajas cualificaciones interactuado con la estandarización de la densidad de vivienda total, para altas densidades o bajas densidades para todas las ocupaciones, y ocupaciones con altas y bajas cualificaciones.
-* Cambio en la estandarización de la demanda de vivienda solo o interctuado con ocupaciones calificadas como que requieren altas cualificaciones
+* Cambio en la estandarización de la demanda habitacional solo o interctuado con ocupaciones calificadas como que requieren altas cualificaciones
   */
   
 /*  Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
@@ -4818,13 +4818,36 @@ lincom drent
 
 
 
-***********************
- * Panel B
-***********************
- 
- ** Housing supply equation
+*******************************************
+ * Panel B:  Housing supply equation
+*******************************************
+
+/* El autor estima el el impacto que tiene en el cambio del valor de la renta entre 2010 y 1990:
+* La densidad habitacional respecto al área del census tract 
+* La densidad habitacional multiplicada por la diferencia en el ingreso
+*/
+
+
+/*Utiliza variables instrumentales para la densidad habitacional multiplicada por la diferencia en el ingreso:
+
+*Utiliza la interacción entre la estandarización de la densidad habitacional por los valores simulados de trabajadores altamente y bajamente calificados y el total de la población en el tract (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado):
+  */
+  
+/*  
+Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
+Se utiliza efectos fijos de área metropolitana.
+Se utiliza el método generalizado de momentos.
+Se agrupan los errores estándares a nivel census tract.
+  */
+
+*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
+
   ivreghdfe drent room_density_1mi_3mi (ddemand_density =dln_sim_total_density dln_sim_low_total_density dln_sim_high_total_density)[w=count], absorb(i.metarea) cluster(tract_id) gmm2s
 
+  
+/* Si bien los coeficientes no son iguales, tienen valores relativamente cercanos a los presentados en el paper. Esta diferencia puede ser por diferencias en las estimaciones del método o por un problema de organización del paquete de replicación que hace que se repitan los mismos procesos en múltiples bases de datos diferentes. Si bien se sale del scope del presente trabajo de replicación, se sugiere a futuras personas que quieran replicarlo que organicen cada uno de los do-files de forma que se optimice el número de líneas de código". */  
+  
+ 
  
  *** robustness checks (Table 7)
  
