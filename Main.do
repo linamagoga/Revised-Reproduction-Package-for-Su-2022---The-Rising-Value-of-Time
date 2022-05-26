@@ -5,7 +5,7 @@
 ** 		      Lina María Gómez García              **
 ** 			   						               **
 **   Improvements to the Code Needed to Reproduce  **
-**                 Su (2022) Paper                 **
+**                    Su (2022)                    **
 *****************************************************
 
 clear all
@@ -2548,14 +2548,14 @@ cd $data/temp_files
 save ddemand, replace
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Data Prep -  Housing Density
-*************************************+*************************************+****
+*************************************+*************************************+***
 
 
-********************************************************************************
+*******************************************************************************
 ** Se genera una base que almacene el área del tract para 1980:
-********************************************************************************
+*******************************************************************************
 
 *** import area (1980 census tract)
 cd $data/geographic
@@ -2571,9 +2571,9 @@ cd $data/geographic
 save area1980, replace
 
 
-********************************************************************************
+*******************************************************************************
 ** Número de vivienda en 1980:
-********************************************************************************
+*******************************************************************************
 
 cd $data/nhgis
 import delimited nhgis0034_ds107_1980_tract.csv, clear
@@ -2585,9 +2585,9 @@ sort gisjoin
 cd $data/temp_files
 save room1980, replace
 
-********************************************************************************
+*******************************************************************************
 ** Densidad habitacional usando datos de 1980:
-********************************************************************************
+*******************************************************************************
 
 cd $data/geographic
 u tract1990_tract1980_1mi, clear
@@ -3226,43 +3226,38 @@ cd $data/temp_files
 u data_matlab, clear
 
 *Se etiquetan a las variables:
-label variable d_restaurant "Restaurantes"
-label variable d_grocery "Tiendas de barrio"
-label variable d_gym "Gimnasios"
-label variable d_personal "Servicios personales"
-label variable dratio "Cambio Ratio"
+label variable d_restaurant "Restaurants per 1,000 residents"
+label variable d_grocery "Grocery Store per 1,000 residents"
+label variable d_gym "Gyms per 1,000 residents"
+label variable d_personal "Personal serv. estab. per 1,000 residents"
+label variable dratio "$\Delta$ ln(skill ratio)"
+
+est clear
 
 *Se estiman los resultados y se adicionan a la tabla en formato .tex:
 cd $table/table
-reghdfe d_restaurant dratio, absorb(metarea) vce(robust)
-outreg2 using Tabla_1, tex label replace noaster title("Tabla 1. Relación entre el Ratio de Calificación Local y la Oferta de Amenidades locales por cada 1,000 residentes") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
-reghdfe d_grocery dratio, absorb(metarea) vce(robust)
-outreg2 using Tabla_1, tex label append noaster nocons
-reghdfe d_gym dratio, absorb(metarea) vce(robust)
-outreg2 using Tabla_1, tex label append noaster nocons 
-reghdfe d_personal dratio, absorb(metarea) vce(robust)
-outreg2 using Tabla_1, tex label append noaster nocons
+eststo: reghdfe d_restaurant dratio, absorb(metarea) vce(robust)
+estadd local OBS "19291"
+estadd local FE "Yes" 
 
-*****************************
-* Column (1-4) of Table 6
-*****************************
-/*Se hace una regresión entre las amenidades del barrio y el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract. Se están utilizando efectos fijos de área metropolitana y se utilizan errores estándares robustos por posible heterocedasticidad de los errores estándares. El autor instrumenta la variable independiente con su variable instrumental ya que quiere evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. Se observa que en este caso instrumenta con el crecimiento de altas habilidades y el crecimiento de bajas habilidades por separado. No se comprende muy bien porque tomo esta decisión en vez de instrumentar con el valor simulado que calcula el cambio en la proporción en el tiempo (drtio). Tampoco se comprende muy bien si el comando ivreghdfe ya está teniendo en cuenta que la estimación se pretende hacer por GMM o si se está corriendo con una regresión lineal. Se sugiere que el autor aclare esto ya que haciendo una busqueda de internet no aparece como sería el comando si se quisiera utilizar otro modelo diferente. Al no tenerse mucho conocimiento del método GMM, no se sabe si el estimador puede seguir siendo endógeno porque asentarse cerca a su trabajo y mayores amenidades pueden estar relacionadas con el valor de la renta por ejemplo. */
-*************************************+*************************************+**
+eststo: reghdfe d_grocery dratio, absorb(metarea) vce(robust)
+estadd local OBS "19291"
+estadd local FE "Yes"
 
-ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label replace noaster title("Tabla 6. Estimación para la Oferta de Amenidades") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
-ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
-ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
-ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
+eststo: reghdfe d_gym dratio, absorb(metarea) vce(robust)
+estadd local OBS "19291"
+estadd local FE "Yes"
+
+eststo: reghdfe d_personal dratio, absorb(metarea) vce(robust)
+estadd local OBS "19291"
+estadd local FE "Yes"
+
+/* esttab using "table1.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects") r2 obslast nogaps label alignment(D{.}{.}{-1}) mgroups("Dependent variable: ∆ln(measurement of the selected amenity)", pattern(1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span})) title("Relationship Between Local Skill Ratio and Supply of Local Amenities") nonotes addnotes("Notes: Results shown above are OLS regressions, with sample from all MSAs. Each observation for columns 1–4" "is at the census tract level. For each census tract, I sum up all the relevant business establishments located within" "a one-mile radius of zip code centroids. Then, I sum up the population in census tracts located within 1 mile and" "compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of" "workers in high-skilled occupations and the number of workers in low-skilled occupations summed over all" "census tracts within one mile of each census tract. Each observation for columns 5–6 is a municipality. To compute log" "crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match census tracts" "to municipalities and compute the overall skill ratio using variables summed over across census tracts matched to" "municipalities. Robust standard errors are reported in parentheses.") */
 
 *************************************+*************************************+**
 /* Data Cleaning Crime Amenity*/
 *************************************+*************************************+**
 
-clear all
 cd $data/crime
 import delimited crime_place2013_tract1990.csv , varnames(1) clear
 
@@ -3328,15 +3323,39 @@ g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
 *************************************+*************************************+**
 
 *Se etiquetan a las variables:
-label variable dproperty "Crimen de Propiedad"
-label variable dviolent "Crimen Violento"
-label variable dratio "Cambio Ratio"
+label variable dproperty "Property Crime per 1,000 residents"
+label variable dviolent "Violent Crime per 1,000 residents"
+label variable dratio " $\Delta$ ln(skill ratio)"
 
 cd $table/table
-reghdfe dproperty dratio [w=population] if dln_sim_high!=., absorb(metarea) vce(robust)
-outreg2 using Tabla_1, tex label append noaster nocons addtext(Sí)
-reghdfe dviolent dratio [w=population] if dln_sim_high!=., absorb(metarea)  vce(robust)
-outreg2 using Tabla_1, tex label append noaster nocons addtext(Sí)
+eststo:reghdfe dproperty dratio [w=population] if dln_sim_high!=., absorb(metarea) vce(robust)
+estadd local OBS "1870"
+estadd local FE "Yes"
+
+eststo: reghdfe dviolent dratio [w=population] if dln_sim_high!=., absorb(metarea)  vce(robust)
+estadd local OBS "1870"
+estadd local FE "Yes"
+
+
+esttab using "table1.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects" "OBS Observations") r2 noobs label mgroups("Dependent variable: $\Delta$ ln(measurement of the selected amenity)", pattern(0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span}))  nonotes title("Relationship Between Local Skill Ratio and Supply of Local Amenities") mtitles("\shortstack{Restaurants\\per 1,000\\residents}" "\shortstack{Grocery Store\\per 1,000\\residents}""\shortstack{Gyms\\per 1,000\\residents}" "\shortstack{Personal serv.\\estab. per 1,000\\residents}" "\shortstack{Property crime\\per 1,000\\residents}" "\shortstack{Violent crime\\per 1,000\\residents}") addnotes("Notes: Results shown above are OLS regressions, with sample from all MSAs. Each observation for columns 1–4 is at the census tract level. For each census tract, I" "sum up all the relevant business establishments located within a one-mile radius of zip code centroids. Then, I sum up the population in census tracts located within 1" "mile and compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of workers in high-skilled occupations and the" "number of workers in low-skilled occupations summed over all census tracts within one mile of each census tract. Each observation for columns 5–6 is a municipality." "To compute log crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match census tracts to municipalities and compute the" "overall skill ratio using variables summed over across census tracts matched to municipalities. Robust standard errors are reported in parentheses.")
+
+
+*****************************
+* Column (1-4) of Table 6
+*****************************
+/*Se hace una regresión entre las amenidades del barrio y el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract. Se están utilizando efectos fijos de área metropolitana y se utilizan errores estándares robustos por posible heterocedasticidad de los errores estándares. El autor instrumenta la variable independiente con su variable instrumental ya que quiere evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. Se observa que en este caso instrumenta con el crecimiento de altas habilidades y el crecimiento de bajas habilidades por separado. No se comprende muy bien porque tomo esta decisión en vez de instrumentar con el valor simulado que calcula el cambio en la proporción en el tiempo (drtio). Tampoco se comprende muy bien si el comando ivreghdfe ya está teniendo en cuenta que la estimación se pretende hacer por GMM o si se está corriendo con una regresión lineal. Se sugiere que el autor aclare esto ya que haciendo una busqueda de internet no aparece como sería el comando si se quisiera utilizar otro modelo diferente. Al no tenerse mucho conocimiento del método GMM, no se sabe si el estimador puede seguir siendo endógeno porque asentarse cerca a su trabajo y mayores amenidades pueden estar relacionadas con el valor de la renta por ejemplo. */
+*************************************+*************************************+**
+
+ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label replace noaster title("Tabla 6. Estimación para la Oferta de Amenidades") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
+ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
+ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
+ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+outreg2 using Tabla_6, tex label append noaster nocons
+
+
 
 
 *****************************
