@@ -3211,7 +3211,7 @@ egen tract_id=group(gisjoin)
 save data_matlab, replace
 
 *************************************+*************************************+**
-/* Tabla 1 y 6 */
+/* Tabla 1 */
 *************************************+*************************************+**
 
 *****************************
@@ -3298,7 +3298,7 @@ collapse (sum) impute2010_high impute2010_low impute1990_high impute1990_low pop
 
 
 *************************************+*************************************+**
-/* Tabla 1 y 6 */
+/* Tabla 1 */
 *************************************+*************************************+**
 
 
@@ -3337,26 +3337,112 @@ estadd local OBS "1870"
 estadd local FE "Yes"
 
 
-esttab using "table1.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects" "OBS Observations") r2 noobs label mgroups("Dependent variable: $\Delta$ ln(measurement of the selected amenity)", pattern(0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span}))  nonotes title("Relationship Between Local Skill Ratio and Supply of Local Amenities") mtitles("\shortstack{Restaurants\\per 1,000\\residents}" "\shortstack{Grocery Store\\per 1,000\\residents}""\shortstack{Gyms\\per 1,000\\residents}" "\shortstack{Personal serv.\\estab. per 1,000\\residents}" "\shortstack{Property crime\\per 1,000\\residents}" "\shortstack{Violent crime\\per 1,000\\residents}") addnotes("Notes: Results shown above are OLS regressions, with sample from all MSAs. Each observation for columns 1–4 is at the census tract level. For each census tract, I" "sum up all the relevant business establishments located within a one-mile radius of zip code centroids. Then, I sum up the population in census tracts located within 1" "mile and compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of workers in high-skilled occupations and the" "number of workers in low-skilled occupations summed over all census tracts within one mile of each census tract. Each observation for columns 5–6 is a municipality." "To compute log crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match census tracts to municipalities and compute the" "overall skill ratio using variables summed over across census tracts matched to municipalities. Robust standard errors are reported in parentheses.")
+esttab using "table1.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects" "OBS Observations") r2 noobs label mgroups("Dependent variable: $\Delta$ ln(measurement of the selected amenity)", pattern(0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span}))  nonotes title("Relationship Between Local Skill Ratio and Supply of Local Amenities") mtitles("\shortstack{Restaurants\\per 1,000\\residents}" "\shortstack{Grocery Store\\per 1,000\\residents}""\shortstack{Gyms\\per 1,000\\residents}" "\shortstack{Personal serv.\\estab. per 1,000\\residents}" "\shortstack{Property crime\\per 1,000\\residents}" "\shortstack{Violent crime\\per 1,000\\residents}") addnotes("Notes: Results shown above are OLS regressions, with sample from all MSAs. Each observation for columns 1–4 is at the census tract level. For each census" "tract, I sum up all the relevant business establishments located within a one-mile radius of zip code centroids. Then, I sum up the population in census" "tracts located within 1 mile and compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of workers in high-" "skilled occupations and the number of workers in low-skilled occupations summed over all census tracts within one mile of each census tract. Each observa-" "tion for columns 5–6 is a municipality. To compute log crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match" "census tracts to municipalities and compute the overall skill ratio using variables summed over across census tracts matched to municipalities. Robust stand-" "ard errors are reported in parentheses.")
+
+*************************************+*************************************+**
+/* Tabla 6 */
+*************************************+*************************************+**
 
 
+cd $data/temp_files
+
+u data_matlab, clear
+
+*Se etiquetan a las variables:
+label variable d_restaurant "Restaurants per 1,000 residents"
+label variable d_grocery "Grocery Store per 1,000 residents"
+label variable d_gym "Gyms per 1,000 residents"
+label variable d_personal "Personal serv. estab. per 1,000 residents"
+label variable dratio "$\Delta$ ln(skill ratio)"
+
+est clear
+
+*Se estiman los resultados y se adicionan a la tabla en formato .tex:
+cd $table/table
 *****************************
 * Column (1-4) of Table 6
 *****************************
 /*Se hace una regresión entre las amenidades del barrio y el cambio del número de habitantes en ocupaciones de altas habilidades respecto a bajas habilidades sumado a nivel tract. Se están utilizando efectos fijos de área metropolitana y se utilizan errores estándares robustos por posible heterocedasticidad de los errores estándares. El autor instrumenta la variable independiente con su variable instrumental ya que quiere evaluar cual es el efecto de que las personas migren al tract por cambios en el valor del tiempo y ubicación de sus trabajos, y no por otras razones. Se observa que en este caso instrumenta con el crecimiento de altas habilidades y el crecimiento de bajas habilidades por separado. No se comprende muy bien porque tomo esta decisión en vez de instrumentar con el valor simulado que calcula el cambio en la proporción en el tiempo (drtio). Tampoco se comprende muy bien si el comando ivreghdfe ya está teniendo en cuenta que la estimación se pretende hacer por GMM o si se está corriendo con una regresión lineal. Se sugiere que el autor aclare esto ya que haciendo una busqueda de internet no aparece como sería el comando si se quisiera utilizar otro modelo diferente. Al no tenerse mucho conocimiento del método GMM, no se sabe si el estimador puede seguir siendo endógeno porque asentarse cerca a su trabajo y mayores amenidades pueden estar relacionadas con el valor de la renta por ejemplo. */
 *************************************+*************************************+**
 
-ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label replace noaster title("Tabla 6. Estimación para la Oferta de Amenidades") nocons nonotes addnote("Errores estándares robustos en paréntesis") 
-ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
-ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
-ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
+eststo: ivreghdfe d_restaurant (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+estadd local OBS "19291"
+estadd local FE "Yes"
+
+eststo: ivreghdfe d_grocery (dratio=dln_sim_high dln_sim_low), absorb(metarea) robust
+estadd local OBS "19291"
+estadd local FE "Yes"
+
+eststo: ivreghdfe d_gym (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+estadd local OBS "19291"
+estadd local FE "Yes"
+
+eststo: ivreghdfe d_personal (dratio= dln_sim_high dln_sim_low), absorb(metarea) robust
+estadd local OBS "19291"
+estadd local FE "Yes"
 
 
 
+*************************************+*************************************+**
+/* Data Cleaning Crime Amenity*/
+*************************************+*************************************+**
+
+cd $data/crime
+import delimited crime_place2013_tract1990.csv , varnames(1) clear
+
+keep gisjoin crime_violent_rate1990 crime_property_rate1990 crime_violent_rate2010 crime_property_rate2010 gisjoin_1
+
+ren gisjoin gisjoin_muni
+ren gisjoin_1 gisjoin
+
+cd $data/temp_files
+
+merge 1:1 gisjoin using population1990
+keep if _merge==3
+drop _merge
+
+merge 1:1 gisjoin using population2010
+keep if _merge==3
+drop _merge
+
+cd $data/temp_files
+
+merge 1:1 gisjoin using skill_pop
+keep if _merge==3
+drop _merge
+
+cd $data/temp_files/iv
+merge m:1 gisjoin using ingredient_for_iv_amenity
+drop if _merge==2
+drop _merge
+
+cd $data/geographic
+
+merge m:1 gisjoin using tract1990_metarea
+keep if _merge==3
+drop _merge
+
+
+collapse (sum) impute2010_high impute2010_low impute1990_high impute1990_low population population2010 sim1990_high sim1990_low sim2010_high sim2010_low (mean) crime_violent_rate* crime_property_rate* , by(gisjoin_muni metarea)
+
+
+*************************************+*************************************+**
+/* Tabla 6 */
+*************************************+*************************************+**
+
+
+/* Se generan los ratios para la variable independiente y el instrumento del cambio del ratio de los altamente calificados respecto a los no calificados  */
+*************************************+*************************************+**
+
+
+g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
+g dratio_sim=ln(sim2010_high/sim2010_low)- ln(sim1990_high/sim1990_low)
+g dviolent=ln( crime_violent_rate2010+0.1)-ln( crime_violent_rate1990+0.1)
+g dproperty=ln( crime_property_rate2010+0.1)-ln( crime_property_rate1990+0.1)
+
+
+g dln_sim_high=ln(sim2010_high)- ln(sim1990_high)
+g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
 
 *****************************
 * Column (5-6) of Table 6
@@ -3364,10 +3450,23 @@ outreg2 using Tabla_6, tex label append noaster nocons
 
 /*En este caso el autor está realizando la misma estimación pero instrumentando la variable independiente por el cambio en el tiempo de la población con altas habilidades y el cambio en el tiempo de la población con bajas habilidades. Pondera, utiliza los mismos efectos fijos y errores estándares robustos por si hay heterocedasticidad de los errores. */
 
-ivreghdfe dproperty (dratio=dln_sim_high dln_sim_low) [w=population] , absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
-ivreghdfe dviolent (dratio=dln_sim_high dln_sim_low) [w=population], absorb(metarea) robust
-outreg2 using Tabla_6, tex label append noaster nocons
+*Se etiquetan a las variables:
+label variable dproperty "Property Crime per 1,000 residents"
+label variable dviolent "Violent Crime per 1,000 residents"
+label variable dratio " $\Delta$ ln(skill ratio)"
+
+cd $table/table
+eststo: ivreghdfe dproperty (dratio=dln_sim_high dln_sim_low) [w=population] , absorb(metarea) robust
+estadd local OBS "1870"
+estadd local FE "Yes"
+
+eststo: ivreghdfe dviolent (dratio=dln_sim_high dln_sim_low) [w=population], absorb(metarea) robust
+estadd local OBS "1870"
+estadd local FE "Yes"
+
+
+esttab using "table6.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects" "OBS Observations") noobs label mgroups("Dependent variable: $\Delta$ ln(measurement of the selected amenity)", pattern(1 0 0 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span}))  nonotes title("Estimates for Amenity Supply Equations") mtitles("\shortstack{Restaurants\\per 1,000\\residents}" "\shortstack{Grocery Store\\per 1,000\\residents}""\shortstack{Gyms\\per 1,000\\residents}" "\shortstack{Personal serv.\\estab. per 1,000\\residents}" "\shortstack{Property crime\\per 1,000\\residents}" "\shortstack{Violent crime\\per 1,000\\residents}") addnotes("Notes: Results shown above are GMM/IV regressions, with sample from all MSAs. I use the change in log number of high-skilled workers and" "change in log number of low-skilled workers predicted by expected commute time and change of value of time as instrumental variables for the" "change in skill ratio. Each observation for columns 1–4 is at census tract level. For each census tract, I sum up all the relevant business establish-" "ments located within a one-mile radius. Then, I sum up the population in census tracts located within 1 mile and compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of workers in high-skilled occupations and the number of work-" "ers in low-skilled occupations summed over all census tracts within one mile of each census tract. Each observation for columns 5–6 is a muni-" "cipality. To compute log crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match census tracts to" "municipalities and compute the skill ratio using variables summed over across census tracts matched to municipalities. Robust standard errors" "are reported.")
+
   
 /* Se adiciona el código para exportar las tablas. Se observa que el autor hace las estimaciones con los comandos reghdfe y ivreghdfe. Con este comando no es posible hacer estimaciones por el método generalizado de momentos que es 
 el método que el afirma utilizar en su paper. Esto puede ser porque el método de momentos en algunos casos es similar a una estimación por mínimos cuadrados ordinarios. Sin embargo, es importante que el autor aclare esto en su apéndice. La documentación del comando ivreghdfe no es lo suficientemente completa. */
