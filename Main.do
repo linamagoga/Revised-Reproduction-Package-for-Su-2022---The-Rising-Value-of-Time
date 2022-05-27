@@ -3471,8 +3471,7 @@ esttab using "table6.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed
 /* Se adiciona el código para exportar las tablas. Se observa que el autor hace las estimaciones con los comandos reghdfe y ivreghdfe. Con este comando no es posible hacer estimaciones por el método generalizado de momentos que es 
 el método que el afirma utilizar en su paper. Esto puede ser porque el método de momentos en algunos casos es similar a una estimación por mínimos cuadrados ordinarios. Sin embargo, es importante que el autor aclare esto en su apéndice. La documentación del comando ivreghdfe no es lo suficientemente completa. */
 
-*************************************+*************************************+***
-    
+*************************************+*************************************+** 
 *************************************+*************************************+***
 **# Output -  Motivation
 *************************************+*************************************+***
@@ -3551,19 +3550,6 @@ cd $data/temp_files
 save reduced_form, replace
 
 *************************************+*************************************+***
-** Tabla 3: Columna 1
-*************************************+*************************************+***
- 
-cd $data/temp_files
-u reduced_form, clear
-
-* Column 1: cambio del valor del tiempo respecto al cambio en el promedio de personas que trabajaron en el 2010 respecto a 1990 más de 50 horas a la semana.
-*Errores estándares robustos, ponderado por la población en cada ocupación
-
-reg ln_d dval [w=count1990] if dval!=., r
-
-
-*************************************+*************************************+***
 ** Generación de variables necesarias para la estimación
 *************************************+*************************************+***
 
@@ -3613,37 +3599,9 @@ merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge 
 
+save table_2_3.dta, replace
 
 **** Change in central city share on change in long hours
-
-*************************************+*************************************+***
-** Tabla 2 y 3
-*************************************+*************************************+***
- 
-
-* Table 2
-* Column 1 - 3 
-reg dratio i.metarea ln_d [ w=count1990] if dval!=. & rank<=10 & downtown==1, cluster(metarea)
-reg dratio i.metarea ln_d [ w=count1990] if dval!=. & rank<=25 & downtown==1, cluster(metarea)
-reg dratio i.metarea ln_d [ w=count1990] if dval!=. & downtown==1, cluster(metarea)
-
-** Table 3
-***************
-
-/* 
-*Regresión entre el cambio en el tiempo de la proporción relativa del ratio de altas vs bajas habilidades entre el centro y los suburbios con el cambio en el valor del tiempo: 
-*Utiliza efectos fijos de área metropolitana
-*Pondera por la población del área metropolitana de 1990.
-*Lo hace solo para aquellas observaciones que se ubican a menos de 5 millas del centro.
-*Lo hace para las 10 ciudades más grandes o las 25 ciudades más grandes.
-*Agrupa los errores estándar a nivel área metropolitana ya que cree que los errores dentro del área metropolitana para las observaciones podrían estar correlacionados. 
-*/
-
-
-* Column 2-4
-reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1 & rank<=10, cluster(metarea)
-reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1 & rank<=25, cluster(metarea)
-reg dratio i.metarea dval [ w=count1990] if dval!=. & downtown==1, cluster(metarea)
 
 *************************************+*************************************+***
 ** Generación de variables necesarias para la estimación
@@ -3681,11 +3639,41 @@ merge m:1 occ2010 metarea using count_metarea
 keep if _merge==3
 drop _merge
 
-
+save table_2_3_2.dta, replace
 
 *************************************+*************************************+***
-** Tabla 2 y 3
+** Tabla 2
 *************************************+*************************************+***
+clear all
+use table_2_3.dta, clear
+
+label variable ln_d " $\Delta$ ln(pct long-hour)"
+
+
+* Column 1 - 3 
+
+/* 
+*Regresión entre el cambio en el tiempo de la proporción relativa del ratio de altas vs bajas habilidades entre el centro y los suburbios con el cambio en el valor del tiempo: 
+*Utiliza efectos fijos de área metropolitana
+*Pondera por la población del área metropolitana de 1990.
+*Lo hace solo para aquellas observaciones que se ubican a menos de 5 millas del centro.
+*Lo hace para las 10 ciudades más grandes o las 25 ciudades más grandes.
+*Agrupa los errores estándar a nivel área metropolitana ya que cree que los errores dentro del área metropolitana para las observaciones podrían estar correlacionados. 
+*/
+
+eststo: ivreghdfe dratio ln_d [ w=count1990] if dval!=. & rank<=10 & downtown==1, absorb(metarea, savefe) vce(cl metarea)
+estadd local FE "\multicolumn{3}{c}{MSA}"
+estadd local Tab "\multicolumn{3}{c}{MSA/occupation}"
+estadd local SE "\multicolumn{3}{c}{Cluster at MSA}"
+
+eststo: ivreghdfe dratio ln_d [ w=count1990] if dval!=. & rank<=25 & downtown==1, vce(cl metarea) absorb(metarea, savefe) 
+
+
+eststo: ivreghdfe dratio ln_d [ w=count1990] if dval!=. & downtown==1, vce(cl metarea) absorb(metarea, savefe) 
+
+use table_2_3_2.dta, clear
+
+label variable ln_d " $\Delta$ ln(pct long-hour)"
 
 /* 
 *Se está haciendo una regresión entre el cambio en el tiempo de transporte y el cambio en el valor del tiempo ponderado por la cantidad de población de 1990.
@@ -3694,18 +3682,85 @@ drop _merge
 *Se agrupan los errores estándares a nivel área metropolitana porque asume que los errores se autocorrelacionan entre ocupaciones (puede que algo que explique el tiempo de transporte de una ocupación no observable también explique el tiempo de otra. Ejemplo: el trancón afecta el tiempo de transporte de ambas ocupaciones).
 */
 
-
-* Table 2
 * Column 4-6 
-reg dtran i.metarea ln_d [w=count1990] if dval!=. & rank<=10, cluster(metarea)
-reg dtran i.metarea ln_d [w=count1990] if dval!=. & rank<=25, cluster(metarea)
-reg dtran i.metarea ln_d [w=count1990] if dval!=., cluster(metarea)
+eststo: ivreghdfe dtran ln_d [w=count1990] if dval!=. & rank<=10, vce(cl metarea) absorb(metarea, savefe) 
+estadd local FE "&\multicolumn{3}{c}{MSA}"
+estadd local Tab "\multicolumn{3}{c}{MSA/occupation}"
+estadd local SE "\multicolumn{3}{c}{Cluster at MSA}"
 
-* Table 3
+eststo: ivreghdfe dtran ln_d [w=count1990] if dval!=. & rank<=25, vce(cl metarea) absorb(metarea, savefe) 
+
+
+eststo: ivreghdfe dtran ln_d [w=count1990] if dval!=., vce(cl metarea) absorb(metarea, savefe) 
+
+
+
+esttab using "table2.tex", replace b(3) se(3)  nocon nostar label mgroups("$\Delta$ ln(share in central city)" "$\Delta$ ln(reported commuting time)", pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span})) nonotes title("Workers in Increasingly Long-Hour Occupations Increasingly Live in the Central Cities" "and Have Slower Growth in Commuting Time") scalars("FE Fixed Effects" "Tab Tabulation" "SE SE") mtitles("\shortstack{Largest 10\\ MSAs}" "\shortstack{Largest 25\\ MSAs}""\shortstack{All MSAs}" "\shortstack{Largest 10\\ MSAs}" "\shortstack{Largest 25\\ MSAs}" "\shortstack{All MSAs}") keep(ln_d) addnotes("Notes: Results shown above are OLS regressions, with tabulated cells by MSA and occupation. I compute the share in central city" "by computing the percentage of workers in each occupation in each MSA who live within five-mile radius of downtown pin (Holian" "and Kahn 2015). The percentage of long hour is defined as the share of workers within each occupation who work at least 50 hours a week." "The regressions are conducted by taking the first differ- ence between data in 2010 and 1990. MSA fixed effects are included. Standard" "errors are clustered at MSA level.")
+
+
+*************************************+*************************************+***
+** Tabla 3
+*************************************+*************************************+***
+clear all
+cd $data/temp_files
+u reduced_form, clear
+label variable ln_d " $\Delta$ ln(pct long-hour)"
+label variable dval " $\Delta$ LHP"
+
+* Column 1: cambio del valor del tiempo respecto al cambio en el promedio de personas que trabajaron en el 2010 respecto a 1990 más de 50 horas a la semana.
+*Errores estándares robustos, ponderado por la población en cada ocupación
+eststo: ivreghdfe ln_d dval [w=count1990] if dval!=., vce(robust)
+estadd local FE "NA"
+estadd local Tab "Occupation"
+estadd local SE "Robust"
+
+* Column 2-4
+
+use table_2_3.dta, clear
+label variable ln_d " $\Delta$ ln(pct long-hour)"
+label variable dval " $\Delta$ LHP"
+
+/* 
+*Regresión entre el cambio en el tiempo de la proporción relativa del ratio de altas vs bajas habilidades entre el centro y los suburbios con el cambio en el valor del tiempo: 
+*Utiliza efectos fijos de área metropolitana
+*Pondera por la población del área metropolitana de 1990.
+*Lo hace solo para aquellas observaciones que se ubican a menos de 5 millas del centro.
+*Lo hace para las 10 ciudades más grandes o las 25 ciudades más grandes.
+*Agrupa los errores estándar a nivel área metropolitana ya que cree que los errores dentro del área metropolitana para las observaciones podrían estar correlacionados. 
+*/
+
+
+eststo: ivreghdfe dratio dval [ w=count1990] if dval!=. & downtown==1 & rank<=10, vce(cl metarea) absorb(metarea) 
+estadd local FE "\multicolumn{3}{c}{MSA}"
+estadd local Tab "\multicolumn{3}{c}{MSA/occupation}"
+estadd local SE "\multicolumn{3}{c}{Cluster at MSA}"
+
+eststo: ivreghdfe dratio dval [ w=count1990] if dval!=. & downtown==1 & rank<=25, vce(cl metarea)  absorb(metarea) 
+eststo: ivreghdfe dratio dval [ w=count1990] if dval!=. & downtown==1, vce(cl metarea)  absorb(metarea) 
+
 * Column 5-7 
-reg dtran i.metarea dval [w=count1990] if dval!=. & rank<=10, cluster(metarea)
-reg dtran i.metarea dval [w=count1990] if dval!=. & rank<=25, cluster(metarea)
-reg dtran i.metarea dval [w=count1990] if dval!=., cluster(metarea)
+
+/* 
+*Se está haciendo una regresión entre el cambio en el tiempo de transporte y el cambio en el valor del tiempo ponderado por la cantidad de población de 1990.
+*Se utiiliza efectos fijos de área metropolitana.
+*Se hace para las 10 ciudades con mayor población o para las 25 ciudades con mayor población.
+*Se agrupan los errores estándares a nivel área metropolitana porque asume que los errores se autocorrelacionan entre ocupaciones (puede que algo que explique el tiempo de transporte de una ocupación no observable también explique el tiempo de otra. Ejemplo: el trancón afecta el tiempo de transporte de ambas ocupaciones).
+*/
+use table_2_3_2.dta, clear
+label variable ln_d "$\Delta$ ln(pct long-hour)"
+label variable dval "$\Delta$ LHP"
+
+eststo: ivreghdfe dtran dval [w=count1990] if dval!=. & rank<=10, absorb(metarea)  vce(cl metarea) 
+estadd local FE "\multicolumn{3}{c}{MSA}"
+estadd local Tab "\multicolumn{3}{c}{MSA/occupation}"
+estadd local SE "\multicolumn{3}{c}{Cluster at MSA}"
+
+eststo: ivreghdfe dtran  dval [w=count1990] if dval!=. & rank<=25, absorb(metarea)  vce(cl metarea) 
+eststo: ivreghdfe dtran dval [w=count1990] if dval!=., absorb(metarea) vce(cl metarea) 
+
+
+esttab using "table3.tex", replace b(3) se(3)  nocon nostar label mgroups("" "$\Delta$ ln(share in central city)" "$\Delta$ ln(reported commuting time)", pattern(0 1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span})) nonotes title("Reduced-Form Relationship between Long-Hour Premium and Long-Hour Worked, Central City Sorting, and Commuting Time") scalars("FE Fixed Effects" "Tab Tabulation" "SE SE") mtitles("\shortstack{$\Delta$ ln(pct \\ long-hour)}" "\shortstack{Largest 10\\ MSAs}" "\shortstack{Largest 25\\ MSAs}""\shortstack{All MSAs}" "\shortstack{Largest 10\\ MSAs}" "\shortstack{Largest 25\\ MSAs}" "\shortstack{All MSAs}") keep(dval) addnotes("Notes: Results shown above are OLS regressions, with tabulated cells. In column 1, I regress the change in the percentage of working long hours" "on the change in long-hour premium (LHP) across occupations, with each obser- vation a tabulation of occupation. From columns 2 to 7, I compute" "the share in central city by computing the percentage of workers in each occupation in each MSA who live within five-mile radius of downtown pin" "(Holian and Kahn, 2015). The percentage of long hour is defined as the share of workers within each occupation who work at least 50 hours a week." "The regressions in columns 2–7 are conducted by taking the first difference between data in 2010 and 1990, with each observation an MSA/occupa-" "tion tabulation. LHP denotes long-hour premium. MSA fixed effects are included. Standard errors are clustered at MSA level.")
+
 
 
 *************************************+*************************************+****
