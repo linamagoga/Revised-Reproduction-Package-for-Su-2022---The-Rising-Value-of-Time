@@ -502,7 +502,7 @@ forvalues i = 0(20000)80000{
 }
 
 **Se pegan las bases generadas anteriormente para obtener una que tenga la ocupación y el número de personas que trabajan en esa ocupación para cada zip code:
-clear all
+clear
 forvalues i=0(20000)80000{
 	local nombre= `i' + 20000
 	append using temp`i'_`nombre'	
@@ -544,7 +544,7 @@ foreach x in `ano'{
 	
 	sort naics
 	
-	cd "/Users/linagomez/Documents/GitHub/Revised-Reproduction-Package-for-Su-2022-/temp_files"
+	cd "$data/temp_files" 
 	foreach num of numlist 6/2{
 		g naics`num'=substr(naics,1,`num')
 		merge m:1 naics`num' using cic1990_naics97_`num'digit
@@ -576,7 +576,7 @@ foreach x in `ano'{
 		save temp`i'_`nombre', replace 	
 	}
 
-	clear all
+	clear
 	forvalues i=0(20000)80000{
 		local nombre= `i' + 20000
 		append using temp`i'_`nombre'	
@@ -596,7 +596,7 @@ forvalues i=1990(10)2010{
 	*Para los años 1990, 2000 y 2010, se junta la base que almacena el número 
 	*de empleados para cada ocupación por cada zip code y los zip codes que 
 	*hacen parte de un área metropolitana.
-	cd "/Users/linagomez/Documents/GitHub/Revised-Reproduction-Package-for-Su-2022-/temp_files"
+	cd "$data/temp_files"
 	u occ_emp_`i', clear
 	
 	cd $data/geographic
@@ -604,7 +604,7 @@ forvalues i=1990(10)2010{
 	merge m:1 zip using zip`i'_metarea
 	keep if _merge==3
 	drop _merge
-	cd "/Users/linagomez/Documents/GitHub/Revised-Reproduction-Package-for-Su-2022-/temp_files"
+	cd "$data/temp_files"
 	save temp, replace
 	
 	*Se suma el número de empleados para cada ocupación en cada área 
@@ -797,7 +797,7 @@ u density, clear
 
 cd $data/temp_files
 
-cd $temp/temp_files
+cd $data/temp_files
 local base "working_pop1990 median_income1990"
 foreach x in `base'{
 merge 1:1 gisjoin using `x'
@@ -924,7 +924,7 @@ foreach x in `base'{
 	encontrar el tiempo se debe multiplicar la distancia por la velocidad 
 	pero esta fórmula no tiene sentido para encontrar el tiempo */
 	g time=3600*distance/(35*1609.34)
-	cd $temp/temp_files
+	cd $data/temp_files
 	
 	if `i' == 1 {
 		save temp, replace
@@ -1095,7 +1095,7 @@ drop _merge
 cd $data/temp_files
 save occ_emp_share_temp, replace
 
-cd $temp/temp_files
+cd $data/temp_files
 save occ_emp_share_temp, replace
 
 ** En el siguiente global se delimitan las ocupaciones para las cuales se quieren hacer los siguientes procesos:
@@ -1182,7 +1182,7 @@ foreach num of global num{
 
 *** En cada base se adiciona una variable que almacene la ocupación para la 
 *que se generó esa base: 
-cd $temp/temp_files/commute
+cd $data/temp_files/commute
 foreach num of global num{
 	u commute_`num', clear
 	g occ2010=`num'
@@ -1389,7 +1389,7 @@ replace occ1990_group=12 if occ1990>=803 & occ1990<=863
 replace occ1990_group=13 if occ1990>=864 & occ1990<=902
 replace occ1990_group=14 if occ1990==999
 
-cd $temp/temp_files
+cd $data/temp_files
 save temp_1990, replace
 
 ***Para 2000:
@@ -1432,7 +1432,7 @@ replace occ2000_group=13 if occ>=700 & occ<=762
 replace occ2000_group=14 if occ>=770 & occ<=896
 replace occ2000_group=15 if occ>=900 & occ<=975
 
-cd $temp/temp_files
+cd $data/temp_files
 save temp_2000, replace
 
 ***Para 2010:
@@ -1493,7 +1493,7 @@ replace occ2010_group=36 if occ2010>=9000 & occ2010<=9420
 replace occ2010_group=37 if occ2010>=9510 & occ2010<=9750
 replace occ2010_group=38 if occ2010==9920
 
-cd $temp/temp_files
+cd $data/temp_files
 save temp_2010, replace
 
 /* Se generan loops para optimizar el proceso posterior para 1990, 2000 y 2010 */
@@ -1503,7 +1503,7 @@ forvalues x=1990(10)2010{
 *2) Partiendo de esta base, se cruzan los grupos generados de ocupación de 1990 con los grupos por ocupcación de 2010. Se genera una base que tenga el grupo para 1990 y la ocupación para 2010.
 
 *Se agrupa el número de hogares por grupo de ocupación y ocupación:
-cd $temp/temp_files
+cd $data/temp_files
 u temp_`x', clear
 g a=1
 collapse (count) count=a, by(occ2010 occ`x'_group)
@@ -1517,7 +1517,7 @@ sort occ2010 occ`x'_group
 save occ_occ_group`x', replace
 
 *3) Se agrupa el número de hogares por Estado, PUMA, ocupación del 2010 y grupo de ocupación de 1990 particular:
-cd $temp/temp_files
+cd $data/temp_files
 u temp_`x', clear
 collapse (count) count=serial, by(statefip puma occ2010 occ`x'_group)
 drop if occ2010==9920
@@ -1536,7 +1536,7 @@ g occ_group_share=count/ count_occ
 keep statefip puma occ2010 occ`x'_group occ_group_share
 
 *7) Se almacena esto en una nueva base de datos:
-cd $temp/temp_files
+cd $data/temp_files
 save occ_group_share`x', replace
 }
 
@@ -1566,8 +1566,10 @@ e4q012: Operators, fabricators,laborers (703-902): Transportation, material mov
 e4q013: Operators, fabricators,laborers (703-902): Handlers, equipment cleaners
 */
 
-
-
+cd $data/temp_files
+u occ_group_share1990, clear
+rename puma puma1990
+save occ_group_share1990, replace
 
 
 *1) Se junta la base de datos de ocupación para 1990 de la nhgis con la base de datos que almacena la equivalencia entre los PUMA y los tracts para ese año:
@@ -1771,7 +1773,7 @@ save number_tract2000, replace
 restore
 
 *4) Se junta la base que identifica el número de personas que trabajan en cada grupo de ocupación de acuerdo con el census tract con la base que cruza la información entre el grupo de ocupación y ocupación partiendo de los identificadores statefip, grupo de ocupación para 2000:
-cd $temp/temp_files
+cd $data/temp_files
 joinby statefip puma occ2000_group using occ_group_share2000
 
 *5) Se imputa el número de empleados por ocupación para cada census tract de 2000 multiplicando el número de personas en cada grupo de ocupación por la proporción de personas que trabajan en cada ocupación dentro del grupo de ocupación al que pertenecen:
@@ -1794,7 +1796,6 @@ replace impute=0 if impute==.
 
 replace impute=round(impute)
 keep gisjoin occ2010 impute 
-drop _fillin
 save tract_impute2000, replace
 
 
@@ -1902,12 +1903,12 @@ keep if _merge==3
 drop _merge
 
 *Se almacena la base:
-cd $temp/temp_files
+cd $data/temp_files
 save occ_tract2010, replace
 
 
 *3) Se genera el número de empleados para cada cada grupo de ocupación de acuerdo con el Census tract:
-cd $temp/temp_files
+cd $data/temp_files
 u occ_tract2010, clear
 keep gisjoin statefip puma occ2010*
 
@@ -1924,7 +1925,7 @@ save number_tract2010, replace
 restore
 
 *4) Se junta la base que identifica el número de personas que trabajan en cada grupo de ocupación de acuerdo con el census tract con la base que cruza la información entre el grupo de ocupación y ocupación partiendo de los identificadores statefip, grupo de ocupación para 1990:
-cd $temp/temp_files
+cd $data/temp_files
 joinby statefip puma occ2010_group using occ_group_share2010
 
 *5) Se imputa el número de empleados por ocupación para cada census tract de 2000 multiplicando el número de personas en cada grupo de ocupación por la proporción de personas que trabajan en cada ocupación dentro del grupo de ocupación al que pertenecen:
@@ -1948,7 +1949,7 @@ replace impute=0 if impute==.
 replace impute=round(impute)
 keep gisjoin occ2010 impute 
 sort gisjoin occ2010
-cd $temp/temp_files
+cd $data/temp_files
 save tract_impute2010, replace
 
 *******************************************************************************
@@ -1980,7 +1981,7 @@ collapse (count) count1990 count2010, by(occ2010)
 replace count1990=. if count1990==0
 replace count2010=. if count2010==0
 *Se guarda la base
-cd $temp/temp_files
+cd $data/temp_files
 save occ2010_count, replace
 
 /* Se generan loops para optimizar el proceso */
@@ -2001,7 +2002,7 @@ replace impute2010=0 if impute2010==.
 
 *3) Se asegura que las observaciones sean consistentes en los tres periodos:
 *Se junta la base con aquella que tiene el número de personas por ocupación en 1990 y 2010:
-cd $temp/temp_files
+cd $data/temp_files
 merge m:1 occ2010 using occ2010_count
 keep if _merge==3
 drop _merge
@@ -2014,7 +2015,7 @@ keep if _merge==3
 drop _merge
 
 *4) Se suma 1 a todas las variables para suavizar las observaciones cuyo valor es 0. 
-cd $temp/temp_files
+cd $data/temp_files
 replace impute1990=impute1990+1
 replace impute2000=impute2000+1
 replace impute2010=impute2010+1
@@ -2033,10 +2034,6 @@ g impute_share2000=impute2000/impute_total2000
 g impute_share2010=impute2010/impute_total2010
 keep occ2010 metarea gisjoin impute_share1990 impute_share2000 impute_share2010
 save tract_impute_share, replace
-
-
-
-
 
 
 *************************************+*************************************+***
@@ -2071,7 +2068,7 @@ forvalues x=0.3(0.1)0.5{
 	g high_skill=0
 	replace high_skill=1 if college_share>=`x'	
 	** Se almacena en una nueva base de datos:
-	cd $temp/temp_files
+	cd $data/temp_files
 	if `x' == 0.4{
 		save high_skill, replace
 	}
@@ -2210,7 +2207,7 @@ ren gisjoin1 gisjoin
 ** Se junta esta base con las bases que tienen información de la renta para 1990 y 2010:
 
 foreach num of numlist 1990 2010{
-	cd $temp/temp_files
+	cd $data/temp_files
 	merge m:1 gisjoin using rent`num'
 	keep if _merge==3
 	drop _merge
@@ -2233,7 +2230,7 @@ drop _merge
 ren gisjoin2 gisjoin
 
 ** Se junta la base generada con la base que tiene información de la renta para 2000:
-cd $temp/temp_files
+cd $data/temp_files
 merge m:1 gisjoin using rent2000
 keep if _merge==3
 drop _merge 
@@ -2248,7 +2245,7 @@ save rent, replace
 ******************************************************************************
 
 ** Se abre base:
-cd $temp/temp_files
+cd $data/temp_files
 u rent, clear
 
 **Se junta con base que cruza información del tract de 1990 con el área metropolitana:
@@ -2443,7 +2440,7 @@ foreach num of local x{
 }
 
 *Se almacena en una nueva base de datos:
-clear all
+clear
 local x 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 23 24 25
 foreach num of local x{
 append using sim_iv`num'
@@ -3252,7 +3249,7 @@ eststo: reghdfe d_personal dratio, absorb(metarea) vce(robust)
 estadd local OBS "19291"
 estadd local FE "Yes"
 
-/* esttab using "table1.tex", replace b(3) se(3) nocon nostar scalars("FE MSA Fixed Effects") r2 obslast nogaps label alignment(D{.}{.}{-1}) mgroups("Dependent variable: ∆ln(measurement of the selected amenity)", pattern(1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cline{@span})) title("Relationship Between Local Skill Ratio and Supply of Local Amenities") nonotes addnotes("Notes: Results shown above are OLS regressions, with sample from all MSAs. Each observation for columns 1–4" "is at the census tract level. For each census tract, I sum up all the relevant business establishments located within" "a one-mile radius of zip code centroids. Then, I sum up the population in census tracts located within 1 mile and" "compute the count of establishments per 1,000 residents. The skill ratio is computed as the ratio of the number of" "workers in high-skilled occupations and the number of workers in low-skilled occupations summed over all" "census tracts within one mile of each census tract. Each observation for columns 5–6 is a municipality. To compute log" "crime rate, I add 0.1 to avoid taking log over zero crime rate. To compute skill ratio for 5–6, I match census tracts" "to municipalities and compute the overall skill ratio using variables summed over across census tracts matched to" "municipalities. Robust standard errors are reported in parentheses.") */
+
 
 *************************************+*************************************+**
 /* Data Cleaning Crime Amenity*/
@@ -3644,7 +3641,7 @@ save table_2_3_2.dta, replace
 *************************************+*************************************+***
 ** Tabla 2
 *************************************+*************************************+***
-clear all
+clear
 use table_2_3.dta, clear
 
 label variable ln_d " $\Delta$ ln(pct long-hour)"
@@ -3701,7 +3698,7 @@ esttab using "table2.tex", replace b(3) se(3)  nocon nostar label mgroups("$\Del
 *************************************+*************************************+***
 ** Tabla 3
 *************************************+*************************************+***
-clear all
+clear
 cd $data/temp_files
 u reduced_form, clear
 label variable ln_d " $\Delta$ ln(pct long-hour)"
@@ -3763,291 +3760,8 @@ esttab using "table3.tex", replace b(3) se(3)  nocon nostar label mgroups("" "$\
 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output -  Summary Statistics
-*************************************+*************************************+****
-
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
-**** Summary statistics
-
-*** Rent
-
-cd $data/temp_files
-u data, clear
-
-duplicates drop gisjoin, force
-
-g ln_rent1990=ln(rent1990)
-g ln_rent2010=ln(rent2010)
-
-sum ln_rent1990, d
-sum ln_rent2010, d
-
-*** Skill ratio
-
-cd $data\final_data
-u data, clear
-
-duplicates drop gisjoin, force
-
-keep gisjoin
-
-cd $data\inter_files\demographic\education
-
-merge 1:1 gisjoin using skill_pop
-keep if _merge==3
-drop _merge
-g ln_ratio_1990=ln( impute1990_high/ impute1990_low)
-sum ln_ratio_1990, d
-g ln_ratio_2010=ln( impute2010_high/ impute2010_low)
-sum ln_ratio_2010, d
-g dratio= ln_ratio_2010- ln_ratio_1990
-sum dratio, d
-
-*** Value of time (Long-hour premium)
-
-cd $data\raw_data\ipums_raw
-u 1990_2000_2010_temp , clear
-
-keep if uhrswork>=30
-
-keep if sex==1
-keep if age>=25 & age<=65
-keep if year==1990 | year==2010
-
-drop wage distance tranwork trantime pwpuma ownershp ownershpd gq
-
-drop if uhrswork==0
-replace inctot=0 if inctot<0
-replace inctot=. if inctot==9999999
-
-g inctot_real=inctot*218.056/130.7 if year==1990
-replace inctot_real=inctot*218.056/172.2 if year==2000
-replace inctot_real=inctot if year==2010
-
-replace inctot_real=inctot_real/52
-
-g greaterthan50=0
-replace greaterthan50=1 if uhrswork>=50
-collapse greaterthan50, by(year occ2010)
-
-reshape wide greaterthan50, i(occ2010) j(year)
-
-g ln_d=ln( greaterthan502010)-ln( greaterthan501990)
-
-cd $data\inter_files\ipums
-
-merge 1:1 occ2010 using inc_occ_1990_2000_2010
-drop _merge
-
-drop inc_mean1990 inc_mean2000 inc_mean2010 wage_real1990 wage_real2000 wage_real2010
-
-cd $data\inter_files\ipums\value_of_time
-
-g metarea=112
-
-merge 1:1 occ2010 using val_40_60_total_1990_2000_2010
-drop _merge
-
-merge 1:1 metarea occ2010 using val_time_log_wage
-drop if _merge==2
-drop _merge
-
-g dwage=wage_real2010-wage_real1990
-
-merge 1:1 metarea occ2010 using val_time_sd_earning
-drop if _merge==2
-drop _merge
-
-g dsd=sd_inctot2010-sd_inctot1990
-
-drop count1990 count2000 count2010
-
-cd $data\inter_files\ipums
-merge 1:1 metarea occ2010 using count_metarea
-keep if _merge==3
-drop _merge
-
-g dval=val_2010-val_1990
-
-cd $data\inter_files\demographic\education
-merge m:1 occ2010 using high_skill
-drop if _merge==2
-drop _merge
-
-keep val_1990 val_2010 dval high_skill
-
-drop if dval==.
-
-sum val_1990 if high_skill==1
-sum val_2010 if high_skill==1
-sum dval if high_skill==1
-
-sum val_1990 if high_skill==0
-sum val_2010 if high_skill==0
-sum dval if high_skill==0
-
-sum val_1990
-sum val_2010
-sum dval
-
-
-*** Amenities
-
-cd $data\inter_files\geographic
-u tract1990_tract1990_2mi, clear
-
-keep if dist<=1610
-cd $data\inter_files\demographic\population
-
-ren gisjoin2 gisjoin
-
-merge m:1 gisjoin using population1990
-keep if _merge==3
-drop _merge
-
-ren population population1990
-
-merge m:1 gisjoin using population2010
-keep if _merge==3
-drop _merge
-
-drop gisjoin
-ren gisjoin1 gisjoin
-
-cd $data\inter_files\demographic\education
-
-merge m:1 gisjoin using skill_pop_1mi
-keep if _merge==3
-drop _merge
-
-*** Merge the ingredient to compute the instrumental variable for local skill ratio
-cd $data\inter_files\instrument
-merge m:1 gisjoin using ingredient_for_iv_amenity
-keep if _merge==3
-drop _merge
-
-
-collapse (sum) population1990 population2010 impute2010_high impute2010_low impute1990_high impute1990_low sim1990_high sim1990_low sim2010_high sim2010_low, by(gisjoin)
-
-cd $data\inter_files\amenities
-
-merge 1:1 gisjoin using tract_amenities
-keep if _merge==3
-drop _merge
-
-cd $data\inter_files\geographic
-
-merge 1:1 gisjoin using tract1990_metarea
-keep if _merge==3
-drop _merge
-
-** restaurant
-g d_large_restaurant=ln( (est_large_restaurant2010+1)/(population2010+1))-ln( (est_large_restaurant1990+1)/(population1990+1))
-g d_small_restaurant=ln( (est_small_restaurant2010+1)/(population2010+1))-ln( (est_small_restaurant1990+1)/(population1990+1))
-g d_restaurant=ln((est_small_restaurant2010+est_large_restaurant2010+1)/(population2010+1))-ln((est_small_restaurant1990+est_large_restaurant1990+1)/(population1990+1))
-
-** grocery stores
-g d_large_grocery=ln( (est_large_grocery2010+1)/(population2010+1))-ln( (est_large_grocery1990+1)/(population1990+1))
-g d_small_grocery=ln( (est_small_grocery2010+1)/(population2010+1))-ln( (est_small_grocery1990+1)/(population1990+1))
-
-g d_grocery=ln( (est_small_grocery2010+est_large_grocery2010+1)/(population2010+1))-ln( (est_small_grocery1990+est_large_grocery1990+1)/(population1990+1))
-** gym
-g d_gym=ln( (est_gym2010+1)/(population2010+1))-ln( (est_gym1990+1)/(population1990+1))
-
-** personal services
-g d_large_personal=ln( (est_large_personal2010+1)/(population2010+1))-ln( (est_large_personal1990+1)/(population1990+1))
-g d_small_personal=ln( (est_small_personal2010+1)/(population2010+1))-ln( (est_small_personal1990+1)/(population1990+1))
-
-g d_personal=ln( (est_small_personal2010+est_large_personal2010+1)/(population2010+1))-ln( (est_small_personal1990+est_large_personal1990+1)/(population1990+1))
-
-g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
-
-g dratio_sim=ln(sim2010_high/sim2010_low)- ln(sim1990_high/sim1990_low)
-g dln_sim_high=ln(sim2010_high)- ln(sim1990_high)
-g dln_sim_low=ln(sim2010_low)- ln(sim1990_low)
-
-duplicates drop gisjoin, force
-cd $data\inter_files\amenities
-egen tract_id=group(gisjoin)
-
-g ln_restaurant_1990=ln((est_small_restaurant1990+est_large_restaurant1990+1)/(population1990+1))
-g ln_restaurant_2010=ln((est_small_restaurant2010+est_large_restaurant2010+1)/(population2010+1))
-
-g ln_grocery_1990=ln( (est_small_grocery1990+est_large_grocery1990+1)/(population1990+1))
-g ln_grocery_2010=ln( (est_small_grocery2010+est_large_grocery2010+1)/(population2010+1))
-
-g ln_gym_1990=ln( (est_gym1990+1)/(population1990+1))
-g ln_gym_2010=ln( (est_gym2010+1)/(population2010+1))
-
-g ln_personal_1990=ln( (est_small_personal1990+est_large_personal1990+1)/(population1990+1))
-g ln_personal_2010=ln( (est_small_personal2010+est_large_personal2010+1)/(population2010+1))
-
-
-*** Crime 
-* crime amenity
-
-clear all
-cd $data\raw_data\geographic_raw\place_tract
-import delimited crime_place2013_tract1990.csv , varnames(1) clear
-
-keep gisjoin crime_violent_rate1990 crime_property_rate1990 crime_violent_rate2010 crime_property_rate2010 gisjoin_1
-
-ren gisjoin gisjoin_muni
-ren gisjoin_1 gisjoin
-
-cd $data\inter_files\demographic\population
-
-merge 1:1 gisjoin using population1990
-keep if _merge==3
-drop _merge
-
-merge 1:1 gisjoin using population2010
-keep if _merge==3
-drop _merge
-
-cd $data\inter_files\demographic\education
-
-merge 1:1 gisjoin using skill_pop
-keep if _merge==3
-drop _merge
-
-cd $data\inter_files\instrument
-merge m:1 gisjoin using ingredient_for_iv_amenity
-drop if _merge==2
-drop _merge
-
-cd $data\inter_files\geographic
-
-merge m:1 gisjoin using tract1990_metarea
-keep if _merge==3
-drop _merge
-
-
-collapse (sum) impute2010_high impute2010_low impute1990_high impute1990_low population population2010 sim1990_high sim1990_low sim2010_high sim2010_low (mean) crime_violent_rate* crime_property_rate* , by(gisjoin_muni metarea)
-
-g dratio=ln((impute2010_high+1)/(impute2010_low+1))-ln((impute1990_high+1)/(impute1990_low+1))
-g dratio_sim=ln(sim2010_high/sim2010_low)- ln(sim1990_high/sim1990_low)
-g dviolent=ln( crime_violent_rate2010+0.1)-ln( crime_violent_rate1990+0.1)
-g dproperty=ln( crime_property_rate2010+0.1)-ln( crime_property_rate1990+0.1)
-
-g ln_violent_1990=ln( crime_violent_rate1990+0.1)
-
-g ln_violent_2010=ln( crime_violent_rate2010+0.1)
-
-g ln_property_1990=ln( crime_property_rate1990+0.1)
-
-g ln_property_2010=ln( crime_property_rate2010+0.1)
-
-
-
-*************************************+*************************************+***
-*************************************+*************************************+***
-**# Output - Main Regression
-*************************************+*************************************+***
 *************************************+*************************************+***
 
 *************************************+*************************************+***
@@ -4318,326 +4032,16 @@ g ddemand_density=room_density_1mi_3mi*ddemand
 
 cd $data/temp_files
 save data, replace
- 
-*******************************************************************************
- *** Main specification (Table 5)
-*******************************************************************************
 
-**** Regress 
-cd $data/temp_files
-u data, clear 
- 
-***********************
- ** Panel A
-*********************** 
-
-/* El autor estima el el impacto que tiene en el cambio de la proporción de población por ocupación para cada tract respecto al MSA entre 2010 y 1990:
-* El valor del tiempo por el tiempo esperado de desplazamiento (el tiempo de desplazamiento en una semana) ponderado por la distribución espacial de los trabajos de cada ocupación y esto mismo para ocupaciones con altas habilidades.
-*El cambio del arriendo en el tiempo solo e interactuado con ocupaciones que requieren de altas habilidades.
-*La oferta de servicios que tenga el barrio cuya proxy es el cambio en el tiempo de la proporción de trabajadores calificados respecto a poco calificados solo e interactuado con ocupaciones que requieren de altas habilidades. */
+*****************************
+* Tabla 4
+*****************************
 
 
-/*Utiliza como controles:
-*El tiempo esperado de desplazamiento y el tiempo esperado de desplazamiento para ocupaciones con altas habilidades.
-*/
-
-/*Utiliza variables instrumentales para el cambio en el arriendo y en la proporción de trabajadores calificados respecto a poco calificados:
-
-* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado por el valor de horas extras y el tiempo de viaje esperado para población con altas y bajas cualificaciones. 
-* Lo mismo pero teniendo en cuenta la información para ocupaciones que requieren altas y bajas cualificaciones.
-* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado para población con altas y bajas cualificaciones interactuado con la estandarización de la densidad de vivienda total, para altas densidades o bajas densidades para todas las ocupaciones, y ocupaciones con altas y bajas cualificaciones.
-* Cambio en la estandarización de la demanda habitacional solo o interctuado con ocupaciones calificadas como que requieren altas cualificaciones
-  */
-  
-/*  Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
-	Se utiliza efectos fijos de área metropolitana interactuada con la ocupación (para ver el cambio en el ratio dentro de una ocupación dentro de un área metropolitana), ocupación interactuada con el cambio en el tiempo esperado de desplazamiento, ocupación interactuada con el tiempo total de viaje (para ver el cambio en el ratio dentro de una ocupación para personas cuyo cambio en el tiempo de desplazamiento y tiempo de desplazamiento fue el mismo).
-	Se utiliza el método generalizado de momentos.
-	Se agrupan los errores estándares a nivel census tract.
-  */
-
-*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
-
-  # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute 
-(dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi)
-[w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
-
- /* Se observa una congruencia con lo explicado en el paper. Se sugiere organizar de mejor forma la carpeta de replicación para que le quede más claro a la persona que está intentando hacer. De igual forma, se sugiere que el autor en el do haga una explicación más detallada de lo que está estimando en esta ecuación ya que fue difícil identificar que es lo que estaba haciendo. */
-
-/* Realizando la estimación se observa que los coeficientes encontrados con este comando dan diferentes aquellos reportados en la tabla 5. Esto se cree puede ser porque el do está desordenado, lo que hace que la generación de variables pueda ser diferente dando diferentes resultados. Otra posibilidad es que no se sepa interpretar bien el output que muestra el comando, aunque esta es menos probable. Esta mayor diferencia entre los resultados encontrados y los resultados estimados se da en mayor medida con el coeficiente del costo de desplazamiento. Se observa que dan valores parecidos en las amenidades y la renta. */
- 
-
-/* Los siguientes comandos los utiliza para encontrar el valor de los coeficientes para el promedio de las ocupaciones que requieren empleados con bajas cualificaciones o con altas cualificaciones. */
- 
-/* El comando lincom hace la combinación líneal de parámetros tras obtener una estimación. */
-
- * Commute cost
- *********************** 
- 
-* High-skilled
-lincom dval_expected_commute + high_dval_expected_commute
-* Low-skilled
-lincom dval_expected_commute
-
-
-* Amenities
-*********************** 
-
-* High-skilled
-lincom dratio + high_skill_dratio
-* low-skilled
-lincom dratio
-
-* Rent
-*********************** 
-
-* High_skilled
-lincom drent + high_skill_drent
-* Low-skilled
-lincom drent
-
-
-
-*******************************************
- * Panel B:  Housing supply equation
-*******************************************
-
-/* El autor estima el el impacto que tiene en el cambio del valor de la renta entre 2010 y 1990:
-* La densidad habitacional respecto al área del census tract 
-* La densidad habitacional multiplicada por la diferencia en el ingreso
-*/
-
-
-/*Utiliza variables instrumentales para la densidad habitacional multiplicada por la diferencia en el ingreso:
-
-*Utiliza la interacción entre la estandarización de la densidad habitacional por los valores simulados de trabajadores altamente y bajamente calificados y el total de la población en el tract (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado):
-  */
-  
-/*  
-Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
-Se utiliza efectos fijos de área metropolitana.
-Se utiliza el método generalizado de momentos.
-Se agrupan los errores estándares a nivel census tract.
-  */
-
-*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
-
-  ivreghdfe drent room_density_1mi_3mi (ddemand_density =dln_sim_total_density dln_sim_low_total_density dln_sim_high_total_density)[w=count], absorb(i.metarea) cluster(tract_id) gmm2s
-
-  
-/* Si bien los coeficientes no son iguales, tienen valores relativamente cercanos a los presentados en el paper. Esta diferencia puede ser por diferencias en las estimaciones del método o por un problema de organización del paquete de replicación que hace que se repitan los mismos procesos en múltiples bases de datos diferentes. Si bien se sale del scope del presente trabajo de replicación, se sugiere a futuras personas que quieran replicarlo que organicen cada uno de los do-files de forma que se optimice el número de líneas de código". */  
-  
- 
- 
- *** robustness checks (Table 7)
- 
- * Column 1
- 
- *** Commute only
-   # delimit
-reghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id);
- # delimit cr
- 
- * Commute cost
- 
-* High-skilled
-lincom dval_expected_commute+ high_dval_expected_commute
-* Low-skilled
-lincom dval_expected_commute
- 
- ** Column 2
- * Commute and amenities
- 
-  # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute (dratio high_skill_dratio=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low ) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
- 
-** Commute cost
- 
-* High-skilled
-lincom dval_expected_commute+ high_dval_expected_commute
- * Low-skilled
-lincom dval_expected_commute
- 
-** Amenities
- 
-* High-skilled
-lincom dratio + high_skill_dratio
-* Low-skilled
-lincom dratio
-
- ** Column 3
- ** Commute and rents
- 
-   # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute  (drent high_skill_drent=   dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
- 
- ** Commute cost
- 
-* High-skilled
-lincom dval_expected_commute+ high_dval_expected_commute
- * Low-skilled
-lincom dval_expected_commute
-
-*  Rent
-* High-skilled
-lincom drent + high_skill_drent
-* Low-skilled
-lincom drent
-
-** Column 4
-** Residual log earnings dispersion
-  # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute dsd_expected_commute high_dsd_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
- 
- ** Commute cost
- 
-* High-skilled
-lincom dsd_expected_commute+ high_dsd_expected_commute
- * Low-skilled
-lincom dsd_expected_commute
-
-* Amenities
-* High-skilled
-lincom dratio + high_skill_dratio
-* Low-skilled
-lincom dratio
- 
-*  Rent
-* High-skilled
-lincom drent + high_skill_drent
-* Low-skilled
-lincom drent
-
- ** Column 5
- ** Change in prevalence in long hours
- 
-    # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute ln_d_expected_commute high_ln_d_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
- 
- 
- ** Commute cost
- 
- * High-skilled
-lincom ln_d_expected_commute+ high_ln_d_expected_commute
- * Low-skilled
-lincom ln_d_expected_commute
-
-** Amenities
-
-* High-skilled
-lincom dratio + high_skill_dratio
-* Low-skilled
-lincom dratio
- 
-*  Rent
-* High-skilled
-lincom drent + high_skill_drent
-* Low-skilled
-lincom drent
- 
- ** Column 6
- ** Change in observed commute time
- 
-   # delimit
-ivreghdfe dimpute expected_commute high_skill_expected_commute dtran_expected_commute high_dtran_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
- # delimit cr
- 
-  ** Commute cost
- 
- * High-skilled
-lincom dtran_expected_commute+ high_dtran_expected_commute
- * Low-skilled
-lincom dtran_expected_commute
-
-** Amenities
-
-* High-skilled
-lincom dratio + high_skill_dratio
-* Low-skilled
-lincom dratio
- 
-*  Rent
-* High-skilled
-lincom drent + high_skill_drent
-* Low-skilled
-lincom drent
- 
-** Column 7 and 8 are conducted in "output_regression_robustness_skill30.do", "output_regression_robustness_skill50.do"
- 
- *** Reduced form results (Table A5)
- 
- # delimit
-reghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id);
- # delimit cr
- 
- * dv*E(c)
- * high-skilled
-lincom dval_expected_commute+ high_dval_expected_commute 
- * low-skilled
-lincom dval_expected_commute 
-
- * dln(N_H)
- * high-skilled
-lincom dln_sim_high+ high_skill_dln_sim_high
- * low-skilled
-lincom dln_sim_high
- 
- * dln(N_L)
- * high-skilled
-lincom dln_sim_low+ high_skill_dln_sim_low
- * low-skilled
-lincom dln_sim_low
-
- * dln(N_H)* den
- * high-skilled
-lincom dln_sim_high_density + high_skill_dln_sim_high_density
- * low-skilled
-lincom dln_sim_high_density
- 
- * dln(N_L)* den
- * high-skilled
-lincom dln_sim_low_density + high_skill_dln_sim_low_density
- * low-skilled
-lincom dln_sim_low_density
- 
- * dln(N_H+N_L)* den
- * high-skilled
-lincom dln_sim_density + high_skill_dln_sim_density
- * low-skilled
-lincom dln_sim_density
- 
- * den
- * high-skilled
-lincom room_density_1mi_3mi + high_skill_room_density_1mi_3mi 
- * low-skilled
-lincom room_density_1mi_3mi
-
-
-
-
-
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-
-
-**** Summary statistics (Table 4)
-
+*** Value of time (Long-hour premium)
 
 *** Long hour premium
-cd $data/temp_files
+cd "$data/temp_files"
 u val_40_60_total_1990_2000_2010, clear
 
 g dval=val_2010-val_1990
@@ -4650,18 +4054,91 @@ keep val_1990 val_2010 dval high_skill
 
 drop if dval==.
 
+clear collect
+
 ** Long hour premium
-sum val_1990
+sum val_1990 
+collect get L1990 = "Long-hour premium", tags(Col[1])
+collect get L1990 = "1990", tags(Col[2])
+collect get L1990 = r(N), tags(Col[3])
+collect get L1990 = r(mean), tags(Col[4])
+collect get L1990 = r(sd), tags(Col[5])
+collect get L1990 = r(min), tags(Col[6])
+collect get L1990 = r(max), tags(Col[7])
+
 sum val_2010
-sum dval
+collect get L2010 = "", tags(Col[1])
+collect get L2010 = "2010", tags(Col[2])
+collect get L2010 = r(N), tags(Col[3])
+collect get L2010 = r(mean), tags(Col[4])
+collect get L2010 = r(sd), tags(Col[5])
+collect get L2010 = r(min), tags(Col[6])
+collect get L2010 = r(max), tags(Col[7])
+
+sum dval 
+collect get LD = "", tags(Col[1])
+collect get LD = "Change", tags(Col[2])
+collect get LD = r(N), tags(Col[3])
+collect get LD = r(mean), tags(Col[4])
+collect get LD = r(sd), tags(Col[5])
+collect get LD = r(min), tags(Col[6])
+collect get LD = r(max), tags(Col[7])
+
 
 sum val_1990 if high_skill==1
-sum val_2010 if high_skill==1
+collect get LH1990 = "Long-hour premium (high-skilled)", tags(Col[1])
+collect get LH1990 = "1990", tags(Col[2])
+collect get LH1990 = r(N), tags(Col[3])
+collect get LH1990 = r(mean), tags(Col[4])
+collect get LH1990 = r(sd), tags(Col[5])
+collect get LH1990 = r(min), tags(Col[6])
+collect get LH1990 = r(max), tags(Col[7])
+
+sum val_2010  if high_skill==1
+collect get LH2010 = "", tags(Col[1])
+collect get LH2010 = "2010", tags(Col[2])
+collect get LH2010 = r(N), tags(Col[3])
+collect get LH2010 = r(mean), tags(Col[4])
+collect get LH2010 = r(sd), tags(Col[5])
+collect get LH2010 = r(min), tags(Col[6])
+collect get LH2010 = r(max), tags(Col[7])
+
 sum dval if high_skill==1
+collect get LHD = "", tags(Col[1])
+collect get LHD = "Change", tags(Col[2])
+collect get LHD = r(N), tags(Col[3])
+collect get LHD = r(mean), tags(Col[4])
+collect get LHD = r(sd), tags(Col[5])
+collect get LHD = r(min), tags(Col[6])
+collect get LHD = r(max), tags(Col[7])
+
 
 sum val_1990 if high_skill==0
+collect get LL1990 = "Long-hour premium (low-skilled)", tags(Col[1])
+collect get LL1990 = "1990", tags(Col[2])
+collect get LL1990 = r(N), tags(Col[3])
+collect get LL1990 = r(mean), tags(Col[4])
+collect get LL1990 = r(sd), tags(Col[5])
+collect get LL1990 = r(min), tags(Col[6])
+collect get LL1990 = r(max), tags(Col[7])
+
 sum val_2010 if high_skill==0
+collect get LL2010 = "", tags(Col[1])
+collect get LL2010 = "2010", tags(Col[2])
+collect get LL2010 = r(N), tags(Col[3])
+collect get LL2010 = r(mean), tags(Col[4])
+collect get LL2010 = r(sd), tags(Col[5])
+collect get LL2010 = r(min), tags(Col[6])
+collect get LL2010 = r(max), tags(Col[7])
+
 sum dval if high_skill==0
+collect get LLD = "", tags(Col[1])
+collect get LLD = "Change", tags(Col[2])
+collect get LLD = r(N), tags(Col[3])
+collect get LLD = r(mean), tags(Col[4])
+collect get LLD = r(sd), tags(Col[5])
+collect get LLD = r(min), tags(Col[6])
+collect get LLD = r(max), tags(Col[7])
 
 
 *** Skill ratio
@@ -4679,9 +4156,37 @@ drop _merge
 g ln_ratio_1990=ln( impute1990_high/ impute1990_low)
 g ln_ratio_2010=ln( impute2010_high/ impute2010_low)
 g dratio= ln_ratio_2010- ln_ratio_1990
-sum ln_ratio_1990
-sum ln_ratio_2010
+
+
+sum ln_ratio_1990 
+collect get SR1990 = "Log Skilled Ratio", tags(Col[1])
+collect get SR1990 = "1990", tags(Col[2])
+collect get SR1990 = r(N), tags(Col[3])
+collect get SR1990 = r(mean), tags(Col[4])
+collect get SR1990 = r(sd), tags(Col[5])
+collect get SR1990 = r(min), tags(Col[6])
+collect get SR1990 = r(max), tags(Col[7])
+
+
+sum ln_ratio_2010 
+collect get SR2010 = "", tags(Col[1])
+collect get SR2010 = "2010", tags(Col[2])
+collect get SR2010 = r(N), tags(Col[3])
+collect get SR2010 = r(mean), tags(Col[4])
+collect get SR2010 = r(sd), tags(Col[5])
+collect get SR2010 = r(min), tags(Col[6])
+collect get SR2010 = r(max), tags(Col[7])
+
+
 sum dratio
+collect get SRD = "", tags(Col[1])
+collect get SRD = "Change", tags(Col[2])
+collect get SRD = r(N), tags(Col[3])
+collect get SRD = r(mean), tags(Col[4])
+collect get SRD = r(sd), tags(Col[5])
+collect get SRD = r(min), tags(Col[6])
+collect get SRD = r(max), tags(Col[7])
+
 
 *** Rent
 
@@ -4690,12 +4195,38 @@ u data, clear
 
 duplicates drop gisjoin, force
 
-
 g ln_rent1990=ln(rent1990)
 g ln_rent2010=ln(rent2010)
-sum ln_rent1990
-sum ln_rent2010
+
+sum ln_rent1990 
+collect get R1990 = "Log Rent", tags(Col[1])
+collect get R1990 = "1990", tags(Col[2])
+collect get R1990 = r(N), tags(Col[3])
+collect get R1990 = r(mean), tags(Col[4])
+collect get R1990 = r(sd), tags(Col[5])
+collect get R1990 = r(min), tags(Col[6])
+collect get R1990 = r(max), tags(Col[7])
+
+
+sum ln_rent2010 
+collect get R2010 = "", tags(Col[1])
+collect get R2010 = "2010", tags(Col[2])
+collect get R2010 = r(N), tags(Col[3])
+collect get R2010 = r(mean), tags(Col[4])
+collect get R2010 = r(sd), tags(Col[5])
+collect get R2010 = r(min), tags(Col[6])
+collect get R2010 = r(max), tags(Col[7])
+
 sum drent
+collect get RD = "", tags(Col[1])
+collect get RD = "Change", tags(Col[2])
+collect get RD = r(N), tags(Col[3])
+collect get RD = r(mean), tags(Col[4])
+collect get RD = r(sd), tags(Col[5])
+collect get RD = r(min), tags(Col[6])
+collect get RD = r(max), tags(Col[7])
+
+
 
 *** Amenities
 
@@ -4792,38 +4323,133 @@ g ln_personal_1990=ln( (est_small_personal1990+est_large_personal1990+1)/(popula
 g ln_personal_2010=ln( (est_small_personal2010+est_large_personal2010+1)/(population2010+1))
 g dln_personal=ln_personal_2010-ln_personal_1990
 
+
 ** Table 4
 
 ** Amenities
 
-** Restaurants
+sum ln_restaurant_1990 
+collect get RE1990 = "Log restaurants per 1,000 residents", tags(Col[1])
+collect get RE1990 = "1990", tags(Col[2])
+collect get RE1990 = r(N), tags(Col[3])
+collect get RE1990 = r(mean), tags(Col[4])
+collect get RE1990 = r(sd), tags(Col[5])
+collect get RE1990 = r(min), tags(Col[6])
+collect get RE1990 = r(max), tags(Col[7])
 
-sum ln_restaurant_1990
-sum ln_restaurant_2010
-sum dln_restaurant
 
-** Grocery
+sum ln_restaurant_2010 
+collect get RE2010 = "", tags(Col[1])
+collect get RE2010 = "2010", tags(Col[2])
+collect get RE2010 = r(N), tags(Col[3])
+collect get RE2010 = r(mean), tags(Col[4])
+collect get RE2010 = r(sd), tags(Col[5])
+collect get RE2010 = r(min), tags(Col[6])
+collect get RE2010 = r(max), tags(Col[7])
 
-sum ln_grocery_1990
-sum ln_grocery_2010
-sum dln_grocery
 
-** Gym
+sum dln_restaurant 
+collect get RED = "", tags(Col[1])
+collect get RED = "Change", tags(Col[2])
+collect get RED = r(N), tags(Col[3])
+collect get RED = r(mean), tags(Col[4])
+collect get RED = r(sd), tags(Col[5])
+collect get RED = r(min), tags(Col[6])
+collect get RED = r(max), tags(Col[7])
 
-sum ln_gym_1990
-sum ln_gym_2010
-sum dln_gym
 
-** Personal
+sum ln_grocery_1990 
+collect get G1990 = "Log grocery stores per 1,000 residents", tags(Col[1])
+collect get G1990 = "1990", tags(Col[2])
+collect get G1990 = r(N), tags(Col[3])
+collect get G1990 = r(mean), tags(Col[4])
+collect get G1990 = r(sd), tags(Col[5])
+collect get G1990 = r(min), tags(Col[6])
+collect get G1990 = r(max), tags(Col[7])
 
-sum ln_personal_1990
-sum ln_personal_2010
+
+sum ln_grocery_2010 
+collect get G2010 = "", tags(Col[1])
+collect get G2010 = "2010", tags(Col[2])
+collect get G2010 = r(N), tags(Col[3])
+collect get G2010 = r(mean), tags(Col[4])
+collect get G2010 = r(sd), tags(Col[5])
+collect get G2010 = r(min), tags(Col[6])
+collect get G2010 = r(max), tags(Col[7])
+
+
+sum dln_grocery 
+collect get GD = "", tags(Col[1])
+collect get GD = "Change", tags(Col[2])
+collect get GD = r(N), tags(Col[3])
+collect get GD = r(mean), tags(Col[4])
+collect get GD = r(sd), tags(Col[5])
+collect get GD = r(min), tags(Col[6])
+collect get GD = r(max), tags(Col[7])
+
+
+sum ln_gym_1990 
+collect get GY1990 = "Log gyms per 1,000 residents", tags(Col[1])
+collect get GY1990 = "1990", tags(Col[2])
+collect get GY1990 = r(N), tags(Col[3])
+collect get GY1990 = r(mean), tags(Col[4])
+collect get GY1990 = r(sd), tags(Col[5])
+collect get GY1990 = r(min), tags(Col[6])
+collect get GY1990 = r(max), tags(Col[7])
+
+
+sum ln_gym_2010 
+collect get GY2010 = "", tags(Col[1])
+collect get GY2010 = "2010", tags(Col[2])
+collect get GY2010 = r(N), tags(Col[3])
+collect get GY2010 = r(mean), tags(Col[4])
+collect get GY2010 = r(sd), tags(Col[5])
+collect get GY2010 = r(min), tags(Col[6])
+collect get GY2010 = r(max), tags(Col[7])
+
+
+sum dln_gym 
+collect get GYD = "", tags(Col[1])
+collect get GYD = "Change", tags(Col[2])
+collect get GYD = r(N), tags(Col[3])
+collect get GYD = r(mean), tags(Col[4])
+collect get GYD = r(sd), tags(Col[5])
+collect get GYD = r(min), tags(Col[6])
+collect get GYD = r(max), tags(Col[7])
+
+
+sum ln_personal_1990 
+collect get P1990 = "Log personal services per 1,000 residents", tags(Col[1])
+collect get P1990 = "1990", tags(Col[2])
+collect get P1990 = r(N), tags(Col[3])
+collect get P1990 = r(mean), tags(Col[4])
+collect get P1990 = r(sd), tags(Col[5])
+collect get P1990 = r(min), tags(Col[6])
+collect get P1990 = r(max), tags(Col[7])
+
+
+sum ln_personal_2010 
+collect get P2010 = "", tags(Col[1])
+collect get P2010 = "2010", tags(Col[2])
+collect get P2010 = r(N), tags(Col[3])
+collect get P2010 = r(mean), tags(Col[4])
+collect get P2010 = r(sd), tags(Col[5])
+collect get P2010 = r(min), tags(Col[6])
+collect get P2010 = r(max), tags(Col[7])
+
+
 sum dln_personal
+collect get PD = "", tags(Col[1])
+collect get PD = "Change", tags(Col[2])
+collect get PD = r(N), tags(Col[3])
+collect get PD = r(mean), tags(Col[4])
+collect get PD = r(sd), tags(Col[5])
+collect get PD = r(min), tags(Col[6])
+collect get PD = r(max), tags(Col[7])
 
 *** Crime 
 * crime amenity
 
-clear all
 cd "$data/crime"
 import delimited crime_place2013_tract1990.csv , varnames(1) clear
 
@@ -4879,22 +4505,528 @@ g dln_property=ln_property_2010-ln_property_1990
 
 *** Table 4 
 ** Violent crime
-sum ln_violent_1990
-sum ln_violent_2010
-sum dln_violent
+sum ln_violent_1990 
+collect get V1990 = "Log violent crime rate", tags(Col[1])
+collect get V1990 = "1990", tags(Col[2])
+collect get V1990 = r(N), tags(Col[3])
+collect get V1990 = r(mean), tags(Col[4])
+collect get V1990 = r(sd), tags(Col[5])
+collect get V1990 = r(min), tags(Col[6])
+collect get V1990 = r(max), tags(Col[7])
 
-** Property crime
 
-sum ln_property_1990
-sum ln_property_2010
+sum ln_violent_2010 
+collect get V2010 = "", tags(Col[1])
+collect get V2010 = "2010", tags(Col[2])
+collect get V2010 = r(N), tags(Col[3])
+collect get V2010 = r(mean), tags(Col[4])
+collect get V2010 = r(sd), tags(Col[5])
+collect get V2010 = r(min), tags(Col[6])
+collect get V2010 = r(max), tags(Col[7])
+
+
+sum dln_violent 
+collect get VD = "", tags(Col[1])
+collect get VD = "Change", tags(Col[2])
+collect get VD = r(N), tags(Col[3])
+collect get VD = r(mean), tags(Col[4])
+collect get VD = r(sd), tags(Col[5])
+collect get VD = r(min), tags(Col[6])
+collect get VD = r(max), tags(Col[7])
+
+
+sum ln_property_1990 
+collect get PR1990 = "Log property crime rate", tags(Col[1])
+collect get PR1990 = "1990", tags(Col[2])
+collect get PR1990 = r(N), tags(Col[3])
+collect get PR1990 = r(mean), tags(Col[4])
+collect get PR1990 = r(sd), tags(Col[5])
+collect get PR1990 = r(min), tags(Col[6])
+collect get PR1990 = r(max), tags(Col[7])
+
+
+sum ln_property_2010 
+collect get PR2010 = "", tags(Col[1])
+collect get PR2010 = "2010", tags(Col[2])
+collect get PR2010 = r(N), tags(Col[3])
+collect get PR2010 = r(mean), tags(Col[4])
+collect get PR2010 = r(sd), tags(Col[5])
+collect get PR2010 = r(min), tags(Col[6])
+collect get PR2010 = r(max), tags(Col[7])
+
+
 sum dln_property
+collect get PRD = "", tags(Col[1])
+collect get PRD = "Change", tags(Col[2])
+collect get PRD = r(N), tags(Col[3])
+collect get PRD = r(mean), tags(Col[4])
+collect get PRD = r(sd), tags(Col[5])
+collect get PRD = r(min), tags(Col[6])
+collect get PRD = r(max), tags(Col[7])
 
-*************************************+*************************************+****
-**# Output - Regression Robustness Skills
-*************************************+*************************************+****
 
-clear all
-global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
+cd "$table/table"
+collect label levels Col 1 " " 2 " " 3 "Observations" 4 "Mean" 5 "SD" 6 "Min" 7 "Max"
+collect style cell, nformat(%8.5f)
+collect style cell result#Col[3], nformat(%8.0f)
+collect style header result, level(hide)
+collect title "Summary Statistics"
+
+collect layout (result) (Col)
+
+collect export "Tabla4.tex", replace 
+
+
+*************************************+*************************************+***
+*************************************+*************************************+***
+**# Output - Main Regression
+*************************************+*************************************+***
+*************************************+*************************************+***
+ 
+*******************************************************************************
+ *** Main specification (Table 5)
+*******************************************************************************
+
+**** Regress 
+cd $data/temp_files
+u data, clear 
+ 
+***********************
+ ** Panel A
+*********************** 
+
+/* El autor estima el el impacto que tiene en el cambio de la proporción de población por ocupación para cada tract respecto al MSA entre 2010 y 1990:
+* El valor del tiempo por el tiempo esperado de desplazamiento (el tiempo de desplazamiento en una semana) ponderado por la distribución espacial de los trabajos de cada ocupación y esto mismo para ocupaciones con altas habilidades.
+*El cambio del arriendo en el tiempo solo e interactuado con ocupaciones que requieren de altas habilidades.
+*La oferta de servicios que tenga el barrio cuya proxy es el cambio en el tiempo de la proporción de trabajadores calificados respecto a poco calificados solo e interactuado con ocupaciones que requieren de altas habilidades. */
+
+
+/*Utiliza como controles:
+*El tiempo esperado de desplazamiento y el tiempo esperado de desplazamiento para ocupaciones con altas habilidades.
+*/
+
+/*Utiliza variables instrumentales para el cambio en el arriendo y en la proporción de trabajadores calificados respecto a poco calificados:
+
+* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado por el valor de horas extras y el tiempo de viaje esperado para población con altas y bajas cualificaciones. 
+* Lo mismo pero teniendo en cuenta la información para ocupaciones que requieren altas y bajas cualificaciones.
+* Cambio en la proporción de trabajadores calificados respecto a poco calificados estimado para población con altas y bajas cualificaciones interactuado con la estandarización de la densidad de vivienda total, para altas densidades o bajas densidades para todas las ocupaciones, y ocupaciones con altas y bajas cualificaciones.
+* Cambio en la estandarización de la demanda habitacional solo o interctuado con ocupaciones calificadas como que requieren altas cualificaciones
+  */
+  
+/*  Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
+	Se utiliza efectos fijos de área metropolitana interactuada con la ocupación (para ver el cambio en el ratio dentro de una ocupación dentro de un área metropolitana), ocupación interactuada con el cambio en el tiempo esperado de desplazamiento, ocupación interactuada con el tiempo total de viaje (para ver el cambio en el ratio dentro de una ocupación para personas cuyo cambio en el tiempo de desplazamiento y tiempo de desplazamiento fue el mismo).
+	Se utiliza el método generalizado de momentos.
+	Se agrupan los errores estándares a nivel census tract.
+  */
+
+*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
+
+  # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute 
+(dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi)
+[w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+
+ /* Se observa una congruencia con lo explicado en el paper. Se sugiere organizar de mejor forma la carpeta de replicación para que le quede más claro a la persona que está intentando hacer. De igual forma, se sugiere que el autor en el do haga una explicación más detallada de lo que está estimando en esta ecuación ya que fue difícil identificar que es lo que estaba haciendo. */
+
+/* Realizando la estimación se observa que los coeficientes encontrados con este comando dan diferentes aquellos reportados en la tabla 5. Esto se cree puede ser porque el do está desordenado, lo que hace que la generación de variables pueda ser diferente dando diferentes resultados. Otra posibilidad es que no se sepa interpretar bien el output que muestra el comando, aunque esta es menos probable. Esta mayor diferencia entre los resultados encontrados y los resultados estimados se da en mayor medida con el coeficiente del costo de desplazamiento. Se observa que dan valores parecidos en las amenidades y la renta. */
+ 
+
+/* Los siguientes comandos los utiliza para encontrar el valor de los coeficientes para el promedio de las ocupaciones que requieren empleados con bajas cualificaciones o con altas cualificaciones. */
+ 
+/* El comando lincom hace la combinación líneal de parámetros tras obtener una estimación. */
+
+ * Commute cost
+ *********************** 
+
+collect clear
+
+* High-skilled
+lincom dval_expected_commute + high_dval_expected_commute
+collect get CO1 = "Commute cost $\left(\mu \right)$", tag(Col[1])
+collect get CO1 = "High-skilled", tag(Col[2])
+collect get C01 = r(estimate), tag(Col[3])
+collect get CO1 = " ", tag(Col[4])
+collect get CO1 = " ", tag(Col[5])
+
+collect get CO2 = " ", tag(Col[1])
+collect get CO2 = " ", tag(Col[2])
+collect get C02 = r(se), tag(Col[3])
+collect get CO2 = " ", tag(Col[4])
+collect get CO2 = " ", tag(Col[5])
+
+
+* Low-skilled
+lincom dval_expected_commute
+collect get CO3 = " ", tag(Col[1])
+collect get CO3 = "Low-skilled", tag(Col[2])
+collect get C03 = r(estimate), tag(Col[3])
+collect get CO3 = " ", tag(Col[4])
+collect get CO3 = " ", tag(Col[5])
+
+collect get CO4 = " ", tag(Col[1])
+collect get CO4 = " ", tag(Col[2])
+collect get C04 = r(se), tag(Col[3])
+collect get CO4 = " ", tag(Col[4])
+collect get CO4 = " ", tag(Col[5])
+
+
+
+* Amenities
+*********************** 
+
+* High-skilled
+lincom dratio + high_skill_dratio
+collect get CO5 = " Amenity $\left( \gamma \right)$", tag(Col[1])
+collect get CO5 = "High-skilled", tag(Col[2])
+collect get C05 = r(estimate), tag(Col[3])
+
+collect get CO6 = " ", tag(Col[1])
+collect get CO6 = " ", tag(Col[2])
+collect get C06 = r(se), tag(Col[3])
+
+
+* low-skilled
+lincom dratio
+collect get CO7 = " ", tag(Col[1])
+collect get CO7 = "Low-skilled", tag(Col[2])
+collect get C07 = r(estimate), tag(Col[3])
+
+
+collect get CO8 = " ", tag(Col[1])
+collect get CO8 = " ", tag(Col[2])
+collect get C08 = r(se), tag(Col[3])
+
+
+
+* Rent
+*********************** 
+
+* High_skilled
+lincom drent + high_skill_drent
+collect get CO9 = "Rent $\left( -\beta \right)$", tag(Col[1])
+collect get CO9 = "High-skilled", tag(Col[2])
+collect get C09 = r(estimate), tag(Col[3])
+collect get CO9 = " ", tag(Col[4])
+collect get CO9 = " ", tag(Col[5])
+
+collect get CO10 = " ", tag(Col[1])
+collect get CO10 = " ", tag(Col[2])
+collect get C010 = r(se), tag(Col[3])
+collect get CO10 = " ", tag(Col[4])
+collect get CO10 = " ", tag(Col[5])
+
+* Low-skilled
+lincom drent
+collect get CO11 = " ", tag(Col[1])
+collect get CO11 = "Low-skilled", tag(Col[2])
+collect get C011 = r(estimate), tag(Col[3])
+collect get CO11 = " ", tag(Col[4])
+collect get CO11 = " ", tag(Col[5])
+
+collect get CO12 = " ", tag(Col[1])
+collect get CO12 = " ", tag(Col[2])
+collect get C012 = r(se), tag(Col[3])
+collect get CO12 = " ", tag(Col[4])
+collect get CO12 = " ", tag(Col[5])
+
+
+
+*******************************************
+ * Panel B:  Housing supply equation
+*******************************************
+
+/* El autor estima el el impacto que tiene en el cambio del valor de la renta entre 2010 y 1990:
+* La densidad habitacional respecto al área del census tract 
+* La densidad habitacional multiplicada por la diferencia en el ingreso
+*/
+
+
+/*Utiliza variables instrumentales para la densidad habitacional multiplicada por la diferencia en el ingreso:
+
+*Utiliza la interacción entre la estandarización de la densidad habitacional por los valores simulados de trabajadores altamente y bajamente calificados y el total de la población en el tract (aquellos que tienen en cuenta solo el valor del tiempo extra y el tiempo de viaje esperado):
+  */
+  
+/*  
+Se pondera por el número de trabajadores en cada ocupación para cada área metropolitana en 1990. 
+Se utiliza efectos fijos de área metropolitana.
+Se utiliza el método generalizado de momentos.
+Se agrupan los errores estándares a nivel census tract.
+  */
+
+*ivreghdfe es una regresión variable instrumental con múltiples niveles de efectos fijos.
+
+ivreghdfe drent room_density_1mi_3mi (ddemand_density =dln_sim_total_density dln_sim_low_total_density dln_sim_high_total_density)[w=count], absorb(i.metarea) cluster(tract_id) gmm2s
+
+  
+/* Si bien los coeficientes no son iguales, tienen valores relativamente cercanos a los presentados en el paper. Esta diferencia puede ser por diferencias en las estimaciones del método o por un problema de organización del paquete de replicación que hace que se repitan los mismos procesos en múltiples bases de datos diferentes. Si bien se sale del scope del presente trabajo de replicación, se sugiere a futuras personas que quieran replicarlo que organicen cada uno de los do-files de forma que se optimice el número de líneas de código". */  
+  
+lincom ddemand_density
+collect get CO5 = "Housing demand", tag(Col[4])
+collect get C05 = r(estimate), tag(Col[5])
+
+collect get CO6 = "x Housing stock density $\left( \pi_1 \right)$ ", tag(Col[4])
+collect get C06 = r(se), tag(Col[5])
+
+
+lincom room_density_1mi_3mi
+collect get CO7 = " Housing stock density $\left( \pi_2 \right)$", tag(Col[4])
+collect get C07 = r(estimate), tag(Col[5])
+
+
+collect get CO8 = " ", tag(Col[4])
+collect get C08 = r(se), tag(Col[5])
+
+
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Estimates of Model Parameters"
+
+collect layout (result) (Col)
+collect export "Tabla5.tex", replace 
+
+ 
+*****************************************
+** Pruebas de Robustez (Tabla 7)
+*****************************************
+ 
+ * Column 1
+ 
+ *** Commute only
+   # delimit
+reghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id);
+ # delimit cr
+ 
+ * Commute cost
+collect clear
+
+* High-skilled
+lincom dval_expected_commute+ high_dval_expected_commute
+collect get R1 = "$\mu$", tag(Col[1])
+collect get R1 = "High-skilled", tag(Col[2])
+collect get R1 = r(estimate), tag(Col[3])
+collect get R2 = r(se), tag(Col[3])
+
+* Low-skilled
+lincom dval_expected_commute
+collect get R3 = " ", tag(Col[1])
+collect get R3 = "Low-skilled", tag(Col[2])
+collect get R3 = r(estimate), tag(Col[3])
+collect get R4 = r(se), tag(Col[3])
+
+
+ 
+ ** Column 2
+ * Commute and amenities
+ 
+  # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute (dratio high_skill_dratio=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low ) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+ 
+** Commute cost
+ 
+* High-skilled
+lincom dval_expected_commute+ high_dval_expected_commute
+collect get R1 = r(estimate), tag(Col[4])
+collect get R2 = r(se), tag(Col[4])
+
+
+ * Low-skilled
+lincom dval_expected_commute
+collect get R3 = r(estimate), tag(Col[4])
+collect get R4 = r(se), tag(Col[4])
+ 
+** Amenities
+ 
+* High-skilled
+lincom dratio + high_skill_dratio
+collect get R5 = "$\gamma$", tag(Col[1])
+collect get R5 = "High-skilled", tag(Col[2])
+collect get R5 = r(estimate), tag(Col[4])
+collect get R6 = r(se), tag(Col[4])
+
+
+
+* Low-skilled
+lincom dratio
+collect get R7 = "Low-skilled", tag(Col[2])
+collect get R7 = r(estimate), tag(Col[4])
+collect get R8 = r(se), tag(Col[4])
+
+
+
+ ** Column 3
+ ** Commute and rents
+ 
+   # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute  (drent high_skill_drent=   dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+ 
+ ** Commute cost
+ 
+* High-skilled
+lincom dval_expected_commute+ high_dval_expected_commute
+collect get R1 = r(estimate), tag(Col[5])
+collect get R2 = r(se), tag(Col[5])
+
+ * Low-skilled
+lincom dval_expected_commute
+collect get R3 = r(estimate), tag(Col[5])
+collect get R4 = r(se), tag(Col[5])
+
+
+*  Rent
+* High-skilled
+lincom drent + high_skill_drent
+collect get R9 = "$-\beta$", tag(Col[1])
+collect get R9 = "High-skilled", tag(Col[2])
+collect get R9 = r(estimate), tag(Col[5])
+collect get R10 = r(se), tag(Col[5])
+
+* Low-skilled
+lincom drent
+collect get R11 = "Low-skilled", tag(Col[2])
+collect get R11 = r(estimate), tag(Col[5])
+collect get R12 = r(se), tag(Col[5])
+
+
+** Column 4
+** Residual log earnings dispersion
+  # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute dsd_expected_commute high_dsd_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+ 
+ ** Commute cost
+ 
+* High-skilled
+lincom dsd_expected_commute+ high_dsd_expected_commute
+collect get R1 = r(estimate), tag(Col[6])
+collect get R2 = r(se), tag(Col[6])
+
+ * Low-skilled
+lincom dsd_expected_commute
+collect get R3 = r(estimate), tag(Col[6])
+collect get R4 = r(se), tag(Col[6])
+
+* Amenities
+* High-skilled
+lincom dratio + high_skill_dratio
+collect get R5 = r(estimate), tag(Col[6])
+collect get R6 = r(se), tag(Col[6])
+
+* Low-skilled
+lincom dratio
+collect get R7 = r(estimate), tag(Col[6])
+collect get R8 = r(se), tag(Col[6])
+ 
+*  Rent
+* High-skilled
+lincom drent + high_skill_drent
+collect get R9 = r(estimate), tag(Col[6])
+collect get R10 = r(se), tag(Col[6])
+
+* Low-skilled
+lincom drent
+collect get R11 = r(estimate), tag(Col[6])
+collect get R12 = r(se), tag(Col[6])
+
+
+ ** Column 5
+ ** Change in prevalence in long hours
+ 
+    # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute ln_d_expected_commute high_ln_d_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+ 
+ 
+ ** Commute cost
+ 
+ * High-skilled
+lincom ln_d_expected_commute+ high_ln_d_expected_commute
+collect get R1 = r(estimate), tag(Col[7])
+collect get R2 = r(se), tag(Col[7])
+
+
+ * Low-skilled
+lincom ln_d_expected_commute
+collect get R3 = r(estimate), tag(Col[7])
+collect get R4 = r(se), tag(Col[7])
+
+** Amenities
+
+* High-skilled
+lincom dratio + high_skill_dratio
+collect get R5 = r(estimate), tag(Col[7])
+collect get R6 = r(se), tag(Col[7])
+
+* Low-skilled
+lincom dratio
+collect get R7 = r(estimate), tag(Col[7])
+collect get R8 = r(se), tag(Col[7])
+ 
+*  Rent
+* High-skilled
+lincom drent + high_skill_drent
+collect get R9 = r(estimate), tag(Col[7])
+collect get R10 = r(se), tag(Col[7])
+
+* Low-skilled
+lincom drent
+collect get R11 = r(estimate), tag(Col[7])
+collect get R12 = r(se), tag(Col[7])
+
+
+ 
+ ** Column 6
+ ** Change in observed commute time
+ 
+   # delimit
+ivreghdfe dimpute expected_commute high_skill_expected_commute dtran_expected_commute high_dtran_expected_commute (dratio high_skill_dratio drent high_skill_drent=  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi) [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id) gmm2s;
+ # delimit cr
+ 
+  ** Commute cost
+ 
+ * High-skilled
+lincom dtran_expected_commute+ high_dtran_expected_commute
+collect get R1 = r(estimate), tag(Col[8])
+collect get R2 = r(se), tag(Col[8])
+
+ * Low-skilled
+lincom dtran_expected_commute
+collect get R3 = r(estimate), tag(Col[8])
+collect get R4 = r(se), tag(Col[8])
+
+** Amenities
+
+* High-skilled
+lincom dratio + high_skill_dratio
+collect get R5 = r(estimate), tag(Col[8])
+collect get R6 = r(se), tag(Col[8])
+
+* Low-skilled
+lincom dratio
+collect get R7 = r(estimate), tag(Col[8])
+collect get R8 = r(se), tag(Col[8])
+ 
+*  Rent
+* High-skilled
+lincom drent + high_skill_drent
+collect get R9 = r(estimate), tag(Col[8])
+collect get R10 = r(se), tag(Col[8])
+
+* Low-skilled
+lincom drent
+collect get R11 = r(estimate), tag(Col[8])
+collect get R12 = r(se), tag(Col[8])
+ 
+** Column 7 and 8 are conducted in "output_regression_robustness_skill30.do", "output_regression_robustness_skill50.do"
+
+
+*************************************+*************************************+***
+**# Output - Robustness Skill 30
+*************************************+*************************************+***
 
 
 ** residential data
@@ -5080,7 +5212,7 @@ merge m:1 gisjoin using ddemand
 keep if _merge==3
 drop _merge
 
-cd $temp_files
+cd $data/temp_files
 save data_30, replace
 
 **** Regress 
@@ -5099,32 +5231,45 @@ ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_com
  
 * High-skilled
 lincom dval_expected_commute+ high_dval_expected_commute
+collect get R1 = r(estimate), tag(Col[9])
+collect get R2 = r(se), tag(Col[9])
+
 * Low-skilled
 lincom dval_expected_commute
+collect get R3 = r(estimate), tag(Col[9])
+collect get R4 = r(se), tag(Col[9])
 
 * Amenities
 
 * High-skilled
 lincom dratio + high_skill_dratio
+collect get R5 = r(estimate), tag(Col[9])
+collect get R6 = r(se), tag(Col[9])
+
 * low-skilled
 lincom dratio
+collect get R7 = r(estimate), tag(Col[9])
+collect get R8 = r(se), tag(Col[9])
 
 * Rent
 
 * High_skilled
 lincom drent + high_skill_drent
+collect get R9 = r(estimate), tag(Col[9])
+collect get R10 = r(se), tag(Col[9])
+
 * Low-skilled
 lincom drent
+collect get R11 = r(estimate), tag(Col[9])
+collect get R12 = r(se), tag(Col[9])
 
 
-*************************************+*************************************+****
-**# Output - Regression Robustness Skills
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
+ *************************************+*************************************+***
+**# Output - Robustness Skills 50
+*************************************+*************************************+***
 
 
+ 
 ** residential data
 cd $data/temp_files
 u tract_impute_share, clear
@@ -5308,7 +5453,7 @@ merge m:1 gisjoin using ddemand
 keep if _merge==3
 drop _merge
 
-cd $temp_files
+cd $data/temp_files
 save data_50, replace
 
 **** Regress 
@@ -5327,31 +5472,213 @@ ivreghdfe dimpute expected_commute high_skill_expected_commute dval_expected_com
  
 * High-skilled
 lincom dval_expected_commute+ high_dval_expected_commute
+collect get R1 = r(estimate), tag(Col[10])
+collect get R2 = r(se), tag(Col[10])
+
 * Low-skilled
 lincom dval_expected_commute
+collect get R3 = r(estimate), tag(Col[10])
+collect get R4 = r(se), tag(Col[10])
 
 * Amenities
 
 * High-skilled
 lincom dratio + high_skill_dratio
+collect get R5 = r(estimate), tag(Col[10])
+collect get R6 = r(se), tag(Col[10])
+
 * low-skilled
 lincom dratio
+collect get R7 = r(estimate), tag(Col[10])
+collect get R8 = r(se), tag(Col[10])
 
 * Rent
 
 * High_skilled
 lincom drent + high_skill_drent
+collect get R9 = r(estimate), tag(Col[10])
+collect get R10 = r(se), tag(Col[10])
+
 * Low-skilled
 lincom drent
+collect get R11 = r(estimate), tag(Col[10])
+collect get R12 = r(se), tag(Col[10])
+
+collect layout (result) (Col) 
+
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Robustness Tests with Alternative Model Specifications"
+collect label levels Col 3 "Commute only" 4 "Commute and amenities only" 5 "Commute and rents only" 6 "Residual log earnings dispersion" 7 "Pct of long hour" 8 "Sorting by observed commuting time" 9 "Col > 30%" Col 10 "Col > 50%"
+
+collect layout (result) (Col)
+collect export "Tabla7.tex", replace 
 
 
-*************************************+*************************************+***
+****************************************
+ *** Reduced form results (Table A5)
+ ***************************************
+cd $data/temp_files
+u data, clear  
+
+ # delimit
+reghdfe dimpute expected_commute high_skill_expected_commute dval_expected_commute high_dval_expected_commute  dln_sim_high dln_sim_low high_skill_dln_sim_high high_skill_dln_sim_low dln_sim_density dln_sim_high_density dln_sim_low_density high_skill_dln_sim_density high_skill_dln_sim_high_density high_skill_dln_sim_low_density high_skill_room_density_1mi_3mi room_density_1mi_3mi [w=count] , absorb(i.metarea_occ i.occ2010#c.dexpected i.occ2010#c.total_commute) cluster(tract_id);
+ # delimit cr
+
+collect clear 
+
+ * dv*E(c)
+****************
+
+ * high-skilled
+lincom dval_expected_commute+ high_dval_expected_commute 
+collect get A2 = "$\Delta v x E\left(c \right)$", tag(column[2])
+collect get A2 = "High-skilled", tag(column[3])
+collect get A2 = r(estimate), tag(column[4])
+collect get A3 = r(se), tag(column[4])
+
+ * low-skilled
+lincom dval_expected_commute 
+collect get A4 = "", tag(column[2])
+collect get A4 = "Low-skilled", tag(column[3])
+collect get A4 = r(estimate), tag(column[4])
+collect get A5 = r(se), tag(column[4])
+
+ * dln(N_H)
+ ****************
+ * high-skilled
+lincom dln_sim_high+ high_skill_dln_sim_high
+collect get A6 = "$\Delta ln \left( N^H \right) $", tag(column[2])
+collect get A6 = "High-skilled", tag(column[3])
+collect get A6 = r(estimate), tag(column[4])
+collect get A7 = r(se), tag(column[4])
+
+
+ * low-skilled
+lincom dln_sim_high
+collect get A8 = " ", tag(column[2])
+collect get A8 = "Low-skilled", tag(column[3])
+collect get A8 = r(estimate), tag(column[4])
+collect get A9 = r(se), tag(column[4])
+
+ 
+ * dln(N_L)
+****************
+
+ * high-skilled
+lincom dln_sim_low+ high_skill_dln_sim_low
+collect get A10 = "$\Delta ln \left( N^L \right) $", tag(column[2])
+collect get A10 = "High-skilled", tag(column[3])
+collect get A10 = r(estimate), tag(column[4])
+collect get A11 = r(se), tag(column[4])
+
+
+ * low-skilled
+lincom dln_sim_low
+collect get A12 = " ", tag(column[2])
+collect get A12 = "Low-skilled", tag(column[3])
+collect get A12 = r(estimate), tag(column[4])
+collect get A13 = r(se), tag(column[4])
+
+
+ * dln(N_H)* den
+****************
+
+ * high-skilled
+lincom dln_sim_high_density + high_skill_dln_sim_high_density
+collect get A14 = "$\Delta ln \left( N^H \right) x den $", tag(column[2])
+collect get A14 = "High-skilled", tag(column[3])
+collect get A14 = r(estimate), tag(column[4])
+collect get A15 = r(se), tag(column[4])
+
+
+
+ * low-skilled
+lincom dln_sim_high_density
+collect get A16 = " ", tag(column[2])
+collect get A16 = "Low-skilled", tag(column[3])
+collect get A16 = r(estimate), tag(column[4])
+collect get A17 = r(se), tag(column[4])
+ 
+ * dln(N_L)* den
+**************** 
+
+ * high-skilled
+lincom dln_sim_low_density + high_skill_dln_sim_low_density
+collect get A18 = "$\Delta ln \left( N^L \right) x den $", tag(column[2])
+collect get A18 = "High-skilled", tag(column[3])
+collect get A18 = r(estimate), tag(column[4])
+collect get A19 = r(se), tag(column[4])
+
+
+
+ * low-skilled
+lincom dln_sim_low_density
+collect get A20 = " ", tag(column[2])
+collect get A20 = "Low-skilled", tag(column[3])
+collect get A20 = r(estimate), tag(column[4])
+collect get A21 = r(se), tag(column[4])
+ 
+ * dln(N_H+N_L)* den
+********************************
+ * high-skilled
+lincom dln_sim_density + high_skill_dln_sim_density
+collect get A22 = "$\Delta ln \left( N^L + N^H \right) x den $", tag(column[2])
+collect get A22 = "High-skilled", tag(column[3])
+collect get A22 = r(estimate), tag(column[4])
+collect get A23 = r(se), tag(column[4])
+
+ * low-skilled
+lincom dln_sim_density
+collect get A24 = " ", tag(column[2])
+collect get A24 = "Low-skilled", tag(column[3])
+collect get A24 = r(estimate), tag(column[4])
+collect get A25 = r(se), tag(column[4])
+
+
+ * den
+****************
+ 
+ * high-skilled
+lincom room_density_1mi_3mi + high_skill_room_density_1mi_3mi 
+collect get A26 = "den", tag(column[2])
+collect get A26 = "High-skilled", tag(column[3])
+collect get A26 = r(estimate), tag(column[4])
+collect get A27 = r(se), tag(column[4])
+
+
+ * low-skilled
+lincom room_density_1mi_3mi
+collect get A28 = " ", tag(column[2])
+collect get A28 = "Low-skilled", tag(column[3])
+collect get A28 = r(estimate), tag(column[4])
+collect get A29 = r(se), tag(column[4])
+
+collect get A30 = "Observations", tag(column[2])
+collect get A30 = "8,755,373", tag(column[4])
+
+
+collect layout (result) (column)
+
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Table A5: Reduced-form results from regressing the change in location demand on exogenous variables"
+collect layout (result) (column)
+
+collect export "TablaA5.tex", replace 
+
+
+*************************************+*************************************+**
 **# Output - Counterfactual Main
-*************************************+*************************************+***
+*************************************+*************************************+**
 
-*************************************+*************************************+***
+*************************************+*************************************+**
 ** Se generan variables necesarias para el análisis:
-*************************************+*************************************+***
+*************************************+*************************************+**
 
 *** create counterfatual location share in 2010
 
@@ -5516,12 +5843,45 @@ Con este proceso el autor está intentando mostrar que solo cambiando el valor d
 
  /* Estos resultados son interesantes no solo por lo que le aportan a su paper, sino también porque demuestra que las personas cuando empiezan a valorar más su tiempo deciden vivir a distancias cercanas al lugar de trabajo. Esto implica la importancia del diseño de ciudades que tengan en cuenta las necesidades de las personas para que tenga un mayor impacto en su bienestar. Estas ciudades deberían estar pensadas en términos de las personas que tienen menores ingresos (cuya proxy en este caso es si están altamente calificados o no), ya que se observa que hay un desplazamiento relativo de personas de mayores ingresos al centro respecto a de bajos ingresos (más adelante el autor probará si hubo gentrificación lo cual implicaría una pérdida de bienestar de las personas de bajos ingresos) (no entendido como bienestar económico). */
  
- 
+clear collect
+
 * column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = " ", tag(col[1])
+collect get A1 = "Actual", tag(col[2])
+collect get A1 = r(mean), tag(col[3])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = "3 miles", tag(col[1])
+collect get A2 = "Model-predicted", tag(col[2])
+collect get A2 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[3])
+collect get A4 = " ", tag(col[3])
+
+scalar drop Den Num P
+
+
 
 * column 4 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[6])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[6])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[6])
+
+scalar drop Den Num P
 
 
 /* Al igual que con todas las otras tablas se observa que los valores dan muy similares pero no son exactamente los mismos que los reportados en el paper. Esto se debería revisar más a profundidad en futuros intentos de replicación reorganizando los do's para que sea más claro el proceso y ver donde hay posibles errores*/
@@ -5579,11 +5939,40 @@ Con este proceso el autor está intentando mostrar que solo cambiando el valor d
 
 ** Table 8
 * column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = " ", tag(col[1])
+collect get A5 = "Actual", tag(col[2])
+collect get A5 = r(mean), tag(col[3])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = "5 miles", tag(col[1])
+collect get A6 = "Model-predicted", tag(col[2])
+collect get A6 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[3])
+
+scalar drop Den Num P
+
 
 * column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[6])
+scalar Den =r(mean)
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[6])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[6])
+
+scalar drop Den Num P
 
 
  
@@ -5741,10 +6130,35 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table 8
 * column 2 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[4])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[4])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[4])
+
+scalar drop Den Num P
 
 * column 5 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[7])
+
+scalar drop Den Num P
+
 
 
 *****************************************
@@ -5784,18 +6198,37 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table 8
 * column 2 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[4])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[4])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[4])
+
+scalar drop Den Num P
+
+
 
 * column 5 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-**********************
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den *100
+display P
+collect get A7 = P, tag(col[7])
+
+scalar drop Den Num P
+
 
 *** counterfactual when skill ratio can change and rent does not change. 
 cd $data/temp_files
@@ -5957,10 +6390,35 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 ** Table 8 
 
 * Column 3 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[5])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den
+display P
+collect get A3 = P, tag(col[5])
+
+scalar drop Den Num P
 
 * Column 6 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[8])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[8])
+scalar Num = r(mean)
+
+scalar P = Num / Den *100
+display P
+collect get A3 = P, tag(col[8])
+
+scalar drop Den Num P
 
 
 *****************************************************
@@ -6000,18 +6458,53 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 ** Table 8 
 
 * Column 3 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[5])
+scalar Num = r(mean)
+
+scalar P = Num / Den *100
+display P
+collect get A7 = P, tag(col[5])
+
+scalar drop Den Num P
+
 
 * Column 6 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[8])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[8])
+scalar Num = r(mean)
+
+scalar P = Num / Den *100
+display P
+collect get A7 = P, tag(col[8])
+collect get A7 = "Percent", tag(col[2])
+collect get A3 = "Percent", tag(col[2])
+
+collect layout (result) (col)
 
 
-*************************************+*************************************+****
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Gentrification Decomposition—Relative log Skill Ratio"
+
+collect layout (result) (col)
+
+collect export "Tabla8.tex", replace 
+
+
+*************************************+*************************************+**
 **# Output - Selection
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+**
 
 
 ** value of time overall (without controling for education)
@@ -6115,27 +6608,27 @@ g ddval=dval_noeduc-dval
 g dval_2010=val_2010_noeduc-val_2010
 g dval_1990=val_1990_noeduc-val_1990
 
-cd $data\graph
+cd $data/graph
 # delimit
 graph twoway (scatter ddval college_share) (lfit ddval college_share)
 , graphregion(color(white)) xtitle(Skill content - share of college grad in 1990) ytitle(Change in selection on the observable skill)
 legend(lab(1 "Occupation") lab(2 "Linear fit"));
 # delimit cr
-graph export change_in_selection.emf, replace
+*graph export change_in_selection.emf, replace
 
 # delimit
 graph twoway (scatter dval_2010 college_share) (lfit dval_2010 college_share) if dval!=.
 ,  graphregion(color(white)) xtitle(Skill content - share of college grad in 1990) ytitle(Selection on the observable skill)
 legend(lab(1 "Occupation") lab(2 "Linear fit"));
 # delimit cr
-graph export selection2010.emf, replace
+*graph export selection2010.emf, replace
 
 # delimit
 graph twoway (scatter dval_1990 college_share) (lfit dval_1990 college_share) if dval!=.
 ,  graphregion(color(white)) xtitle(Skill content - share of college grad in 1990) ytitle(Selection on the observable skill)
 legend(lab(1 "Occupation") lab(2 "Linear fit"));
 # delimit cr
-graph export selection1990.emf, replace
+*graph export selection1990.emf, replace
 
 
 *** Appendix Table A1
@@ -6152,12 +6645,9 @@ edit occ2010 val_1990_noeduc val_2010_noeduc dval_noeduc dval_noeduc val_1990 va
 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Appendix - Counterfactual Regression Appendix
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
 ****************
 
@@ -6826,9 +7316,9 @@ reg dln_ratio_ratio dln_ratio_ratio_cf  [w=population] if downtown==1, r
 
 
 
-*************************************+*************************************+***
+*************************************+*************************************+**
 **# Appendix - Exogeneity
-*************************************+*************************************+***
+*************************************+*************************************+**
 
 
 *** Regressing change in incidence of working long hours in the suburbs and central cities
@@ -6946,21 +7436,32 @@ g dratio_sim=dln_sim_high_total - dln_sim_low_total
 
 /* Para evaluar la relevancia de los intrumentos que está utilizando para la tabla 5 - Panel A el autor está haciendo una regresión entre el crecimiento del ratio de habildades y el valor predicho de este crecimiento. Utiliza efectos fijos de área metropolitana (al interior de un área metropolitana se observa la relación ya que está controlando por todas las características invariables en el tiempo de esta área). Utiliza errores estándares robustos. */
 
+label variable dratio "Actual $\Delta$ log skill ratio"
+label variable dratio_sim "Predicted $\Delta$ in log skill ratio"
+label variable dln_sim_high_total " Predicted $\Delta$ change in high-skilled workers"
+label variable dln_sim_low_total "Predicted $\Delta$ change in low-skilled workers"
+
+est clear
 
 * Column 1
-reghdfe dratio dratio_sim, absorb(metarea) cluster(gisjoin)
+eststo: reghdfe dratio dratio_sim, absorb(metarea) cluster(gisjoin)
+estadd local FE "Yes"
+estadd scalar FS e(F)
 * Column 2
-reghdfe dratio dln_sim_low_total dln_sim_high_total, absorb(metarea) vce(robust)
+eststo: reghdfe dratio  dln_sim_high_total dln_sim_low_total, absorb(metarea) cluster(gisjoin)
+estadd local FE "Yes"
+estadd scalar FS e(F)
+
+cd "$table/table"
+esttab using "tableA4.tex", replace b(3) se(3) booktabs nocons nostar label nonotes title("Table A4: First-stage between actual change in skill ratio" "and predicted change in skill ratio") scalars("FE MSA fixed-effects" "FS F-statistics") obslast addnotes("Notes: Results shown above are OLS regressions. Each observation is a census tract. The first-difference is between 1990 and 2010." "I use 2007-2011 ACS for year 2010. Column 1 reports regression result when predicted change in log skill ratio is included as the" "regressor. Column 1 reports regression result when change in high- and low-skilled workers are included separately as the regressors." "The predicted change in log skill ratio is generated by changing only the long-hour premium in the model, assuming $\hat{\mu}$ = 8.94, which" "I obtain by estimating the location demand with only the term of commuting cost and no heterogeneity by skill. The model estimates" "do not respond to the value of $\hat{\mu} $. Standard errors are clustered at census tract level. MSA fixed effects are used for all regressions.")
+
 
 /*En este caso ocurre lo mismo que en otras estimaciones.Se observan diferencias en las magnitudes. De igual forma, se observa que en la descripción de la tabla plantea que para tener en cuenta la posible autocorrelación agrupa los errores a nivel census tract. Esto no se observa en el código arriba descrito. */ 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+**
 **# Output - Counterfactual Adjusted MSA
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+**
 
 
 *** create counterfatual location share in 2010
@@ -7081,15 +7582,49 @@ sort metarea downtown
 by metarea: g dln_ratio_ratio_cf=dln_ratio_cf-dln_ratio_cf[_n-1]
 by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
+est clear
 
 ** Table A6
 
-* Column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+clear collect
 
-* Column 4 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+* column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = " ", tag(col[1])
+collect get A1 = "Actual", tag(col[2])
+collect get A1 = r(mean), tag(col[3])
+scalar Den = r(mean)
 
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = "3 miles", tag(col[1])
+collect get A2 = "Model-predicted", tag(col[2])
+collect get A2 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[3])
+collect get A4 = " ", tag(col[3])
+
+scalar drop Den Num P
+
+
+
+* column 4 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[6])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[6])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[6])
+
+scalar drop Den Num P
 
 
 **************************************
@@ -7127,29 +7662,42 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A6
 
-* Column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+* column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = " ", tag(col[1])
+collect get A5 = "Actual", tag(col[2])
+collect get A5 = r(mean), tag(col[3])
+scalar Den = r(mean)
 
-* Column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = "5 miles", tag(col[1])
+collect get A6 = "Model-predicted", tag(col[2])
+collect get A6 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[3])
+
+scalar drop Den Num P
 
 
+* column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
 
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[6])
+scalar Den =r(mean)
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[6])
+scalar Num = r(mean)
 
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[6])
+
+scalar drop Den Num P
+
 
 *** counterfactual when skill ratio can change and rent can change, too. 
 cd $data/temp_files
@@ -7307,12 +7855,35 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A6
 
-* Column 2 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+* column 2 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[4])
+scalar Den = r(mean)
 
-* Column 5 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[4])
+scalar Num = r(mean)
 
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[4])
+
+scalar drop Den Num P
+
+* column 5 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[7])
+
+scalar drop Den Num P
 
 *****************************************
 **** Five mile evaluation
@@ -7351,19 +7922,38 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A6
 
-* Column 2 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+* column 2 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[4])
+scalar Den = r(mean)
 
-* Column 5 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-**********************
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[4])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[4])
+
+scalar drop Den Num P
+
+
+
+* column 5 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[7])
+
+scalar drop Den Num P
+
 
 *** counterfactual when skill ratio can change and rent does not change. 
 cd $data/temp_files
@@ -7523,12 +8113,35 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 ** Table A6
 
 * Column 3 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[5])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[5])
+
+scalar drop Den Num P
 
 * Column 6 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[8])
+scalar Den = r(mean)
 
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[8])
+scalar Num = r(mean)
 
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[8])
+
+scalar drop Den Num P
 
 
 *****************************************************
@@ -7568,21 +8181,54 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 ** Table A6
 
 * Column 3 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[5])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[5])
+
+scalar drop Den Num P
+
 
 * Column 6 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[8])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[8])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[8])
 
 
-*****************
+collect layout (result) (col)
+collect get A3 = "Percent", tag(col[2])
+collect get A7 = "Percent", tag(col[2])
 
-*************************************+*************************************+****
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Table A6: Gentrification Decomposition—allowing for MSA population adjustments"
+
+collect layout (result) (col[1 2 3 4 5 6 7 8])
+
+collect export "TablaA6.tex", replace 
+
+
+
+*************************************+*************************************+**
 **# Output - Counterfactual 30
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
+*************************************+*************************************+**
 
 *** create counterfatual location share in 2010
 
@@ -7704,10 +8350,45 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A7
 
-* Column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
-* Column 4 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+clear collect
+
+* column 1 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = " ", tag(col[1])
+collect get A1 = "Actual", tag(col[2])
+collect get A1 = r(mean), tag(col[3])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = "3 miles", tag(col[1])
+collect get A2 = "Model-predicted", tag(col[2])
+collect get A2 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[3])
+collect get A4 = " ", tag(col[3])
+
+scalar drop Den Num P
+
+
+
+* column 4 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[6])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[6])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[6])
+
+scalar drop Den Num P
 
 **************************************
 **** Five Mile evaluation
@@ -7744,26 +8425,45 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A7
 
-* Column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
-* Column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
-********************************
+** Table 8
+* column 1 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = " ", tag(col[1])
+collect get A5 = "Actual", tag(col[2])
+collect get A5 = r(mean), tag(col[3])
+scalar Den = r(mean)
 
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = "5 miles", tag(col[1])
+collect get A6 = "Model-predicted", tag(col[2])
+collect get A6 = r(mean), tag(col[3])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[3])
+
+scalar drop Den Num P
+
+
+* column 4 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
+
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[6])
+scalar Den =r(mean)
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[6])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[6])
+
+scalar drop Den Num P
+
+
+
 
 *** counterfactual when skill ratio can change and rent can change, too. 
 cd $data/temp_files
@@ -7920,10 +8620,34 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A7
 * column 2 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[4])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[4])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[4])
+
+scalar drop Den Num P
 
 * column 5 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[7])
+
+scalar drop Den Num P
 
 
 *****************************************
@@ -7963,18 +8687,37 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 ** Table A7
 * column 2 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[4])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[4])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[4])
+
+scalar drop Den Num P
+
+
 
 * column 5 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-********************************
-**********************
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[7])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[7])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[7])
+
+scalar drop Den Num P
+
 
 *** counterfactual when skill ratio can change and rent does not change. 
 cd $data/temp_files
@@ -8134,12 +8877,36 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 
 
 ** Table A7 
-
 * Column 3 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A1 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=25
+collect get A2 = r(mean), tag(col[5])
+
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[5])
+
+scalar drop Den Num P
 
 * Column 6 (3 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A1 = r(mean), tag(col[8])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf  [w=population] if downtown==1 & rank<=50
+collect get A2 = r(mean), tag(col[8])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A3 = P, tag(col[8])
+
+scalar drop Den Num P
 
 
 *****************************************************
@@ -8179,19 +8946,53 @@ by metarea: g dln_ratio_ratio=dln_ratio-dln_ratio[_n-1]
 ** Table A7 
 
 * Column 3 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=25
+collect get A5 = r(mean), tag(col[5])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=25
+collect get A6 = r(mean), tag(col[5])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[5])
+
+scalar drop Den Num P
+
 
 * Column 6 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
-sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
+sum dln_ratio_ratio [w=population] if downtown==1 & rank<=50
+collect get A5 = r(mean), tag(col[8])
+scalar Den = r(mean)
+
+sum dln_ratio_ratio_cf [w=population] if downtown==1 & rank<=50
+collect get A6 = r(mean), tag(col[8])
+scalar Num = r(mean)
+
+scalar P = Num / Den*100
+display P
+collect get A7 = P, tag(col[8])
 
 
+collect layout (result) (col)
+collect layout (result) (col)
+collect get A3 = "Percent", tag(col[2])
+collect get A7 = "Percent", tag(col[2])
 
-*************************************+*************************************+****
+cd "$table/table"
+
+collect style cell, nformat(%8.3f)
+collect style header result, level(hide)
+collect title "Table A7: Gentrification decomposition – Skilled occupation = college share>30\%"
+
+collect layout (result) (col[1 2 3 4 5 6 7 8])
+
+collect export "TablaA7.tex", replace 
+
+*************************************+*************************************+***
 **# Output - Counterfactual 50
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
 
 *** create counterfatual location share in 2010
@@ -8794,12 +9595,10 @@ sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=25
 * Column 6 (5 miles) Actual: mean of dln_ratio_ratio; Model-predicted: mean of dln_ratio_ratio_cf; %: mean of dln_ratio_ratio_cf/mean of dln_ratio_ratio
 sum dln_ratio_ratio* [w=population] if downtown==1 & rank<=50
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Appendix - Reduced Form
-*************************************+*************************************+****
+*************************************+*************************************+***
 
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 cd $data/ipums_micro
 
@@ -9083,12 +9882,9 @@ display share4
 
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output - LHP Skill
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
 cd $data/temp_files
 
@@ -9107,16 +9903,24 @@ order occ2010 val_1990 val_2000 val_2010 dval high_skill
 ** Table A10
 edit occ2010 val_1990 val_2010 dval high_skill if val_1990!=. & val_2000!=. & val_2010!=.
 
+keep occ2010 val_1990 val_2010 dval  high_skill
+
+drop if  val_1990 == . | val_2010 == . | dval == . | high_skill == .
+decode occ2010, gen(occ2010_2)
+drop occ2010
+
+order occ2010_2 val_1990 val_2010 dval  high_skill
 
 
-*************************************+*************************************+****
+cd $table/table
+eststo X: estpost tabstat val_1990 val_2010 dval high_skill, by("occ2010_2") 
+global A = e(labels)
+macro dir
+esttab X using "Tabla10.tex", cells("val_1990 val_2010 dval high_skill") plain nonumber noobs replace label varlabels($A ) title("Table A10: The Long-hour premium and its change by occupation")
+
+*************************************+*************************************+***
 **# Output - Income Ratio
-*************************************+*************************************+****
-
-
-clear all
-global data="/Users/linagomez/Documents/Stata/Economía Urbana/132721-V1/data"
-
+*************************************+*************************************+***
 
 ***********************************
 *** income ratio (5 miles)
@@ -10137,8 +10941,7 @@ g income_ratio=income1/income0
 *** Main Figure (Figure 1a)
 
 ** income ratio (5 miles to downtown) top 25 MSAs
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) yscale(range(0.72 0.85)) ylabel(0.7(0.05)0.9)
-graph export "$data/graph/income_ratio_25.emf", replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(small))  xtitle(Census year, size(small)) graphregion(color(white)) yscale(range(0.72 0.85)) ylabel(0.7(0.05)0.9) scheme(s1color) title("Panel A. Income Ratio", size(small)) name("Graph_1A", replace)
 
 
 *** Appendix Figures
@@ -10170,8 +10973,8 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_1_10_5mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) name(Graph_A2B, replace) title("b) 5-mile radius", size(small)) scheme(s1color)
+*graph export "$data/graph/Graph_A2B.jgp", replace
 
 **** Ranking (11-25)
 ****1950
@@ -10201,8 +11004,8 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_11_25_5mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2D, replace) title("d) 5-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_11_25_5mi.emf, replace
 
 
 
@@ -10234,8 +11037,10 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_25_50_5mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2F, replace) title("f) 5-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_25_50_5mi.emf, replace
+
+
 ****1950
 cd $data/temp_files
 u 1950, clear
@@ -10263,13 +11068,10 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_50+_5mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2H, replace) title("h) 5-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_50+_5mi.emf, replace
 
-*******************************************************************************
-*******************************************************************************
-*******************************************************************************
-*******************************************************************************
+
 ***********************************
 *** income ratio (3 miles)
 **********************************
@@ -11290,8 +12092,8 @@ reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
 ** income ratio (3 miles to downtown) top 25 MSAs
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) yscale(range(0.72 0.85)) ylabel(0.7(0.05)0.9)
-graph export "$data/graph"\income_ratio_25_3mi.emf, replace
+*graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) yscale(range(0.72 0.85)) ylabel(0.7(0.05)0.9) scheme(s1color) name(Graph_2, replace) title("a) 3-mile radius")
+*graph export "$data/graph"\income_ratio_25_3mi.emf, replace
 
 
 **** Ranking (1-10)
@@ -11322,8 +12124,8 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_1_10_3mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2A, replace) title("a) 3-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_1_10_3mi.emf, replace
 
 **** Ranking (11-25)
 ****1950
@@ -11353,8 +12155,8 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_11_25_3mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2C, replace) title("c) 3-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_11_25_3mi.emf, replace
 
 
 
@@ -11386,8 +12188,8 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_25_50_3mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2E, replace) title("e) 3-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_25_50_3mi.emf, replace
 
 
 ****1950
@@ -11417,14 +12219,14 @@ drop if downtown==.
 reshape wide income, i(year) j(downtown)
 g income_ratio=income1/income0
 
-graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income)  xtitle(Census year) graphregion(color(white)) 
-graph export "$data/graph"\income_ratio_50+_3mi.emf, replace
+graph twoway connected income_ratio year, xlabel(1950(10)2010) ytitle(Central city income/suburb household income, size(vsmall))  xtitle(Census year, size(vsmall)) graphregion(color(white)) scheme(s1color) name(Graph_A2G, replace) title("g) 3-mile radius", size(small))
+*graph export "$data/graph"\income_ratio_50+_3mi.emf, replace
+
+cd $data/graph
+graph combine Graph_A2A Graph_A2B Graph_A2C Graph_A2D Graph_A2E Graph_A2F Graph_A2G Graph_A2H, cols(2) rows(4) title("Figure A2: Income ratio between central city and suburban neighborhoods by" "MSA population ranking", size(small)) name(Graph_A2, replace) scheme(s1color) ysize(27.94cm) xsize(21.59cm) imargin(tiny)
+graph export "Graph_A2.jpg", replace 
 
 
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
-******************************************************************************************************
 *******************************
 *** home value ratio
 *********************************
@@ -11855,9 +12657,15 @@ g hvalue_ratio=hvalue1/hvalue0
 *** Main Figure (Figure 1b)
 cd "$data/graph"
 *****Graphs - home value ratio (3 miles within downtown pin vs outside)
-graph twoway connected hvalue_ratio year, xlabel(1950(10)2010) ytitle(Central city home value/suburb home value) xtitle(Census year) graphregion(color(white))
-graph export hvalue_ratio_25.emf, replace
+graph twoway connected hvalue_ratio year, xlabel(1950(10)2010) ytitle(Central city home value/suburb home value, size(small)) xtitle(Census year, size(small)) graphregion(color(white)) scheme(s1color) title("Panel B. Home value ratio", size(small)) name("Graph_1B", replace)
 
+graph combine Graph_1A Graph_1B, name(Graph_1, replace) cols(2) title("Figure 1: Income and Home Value Ratio between Central City and Suburban Neighborhoods", size(medsmall)) imargin(tiny) scheme(s1color) ysize(6cm) xsize(9cm) note("{it: Notes:} Central cities in these figures are census tracts that are located within five miles of the downtown in the respective MSAs" "defined in Holian and Kahn (2015). The values plotted are the mean income and home value of the census tracts located in the cen-" "tral cities and the mean income and home value of noncentral city census tracts in the top 25 MSAs (defined by population ranking" "in 1990)." "{it: Sources:} The source of the data is the decennial census and ACS provided by NHGIS.")
+graph export "Graph_1.jpg", replace
+
+
+*******************************
+* Figura A8
+*******************************
 
 ***** Population (top 25 MSA)
 cd "$data/nhgis"
@@ -12084,18 +12892,14 @@ by year: g ratio=total/(total+total[_n-1])
 
 # delimit
 graph twoway (connected ratio year if downtown==1), 
-xlabel(1950(10)2010) ylabel(0(0.1)0.4) ytitle(Central city population share)  xtitle(year) graphregion(color(white)) 
-xscale(range(1950 2010)) yscale(range(0 0.2));
+xlabel(1950(10)2010) ylabel(0(0.1)0.4) ytitle(Central city population share, size(small))  xtitle(year, size(small)) graphregion(color(white)) 
+xscale(range(1950 2010)) yscale(range(0 0.2)) title("Figure A8: Central city population percentage among the largest 25 MSAs.", size(medium)) name(Graph_A8, replace) scheme(s1color) notes("Notes: Central cities in this graph are defined as census tracts that are located within 5 miles of the downtown pin on Google in the respective MSAs. The value plotted in the graph are the population ratio between the population in the census tracts located in the central cities and the total population in the top 25 MSAs (defined by population ranking in 1990). The source of the data is Census and ACS provided by NHGIS.");
 # delimit cr
-graph export "$data/graph/pop_share25.emf", replace
+graph export "$data/graph/Graph_A8.jpg", replace
 
 *************************************+*************************************+****
 **# Output - Skill Ratio
 *************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
 
 ****skill ratio against distance
 cd $data/temp_files
@@ -12105,7 +12909,7 @@ g ratio1990= impute1990_high/ impute1990_low
 g ratio2000= impute2000_high/ impute2000_low
 g ratio2010= impute2010_high/ impute2010_low
 
-cd $data/geographic\
+cd $data/geographic
 merge 1:1 gisjoin using tract1990_downtown_200mi
 keep if _merge==3
 drop _merge
@@ -12122,18 +12926,17 @@ cd $data/geographic
 merge m:1 metarea using 1990_rank
 drop _merge
 
-cd $data\graph\
+cd $data/graph
 # delimit 
 graph twoway (lpoly dratio distance) (lpoly dratio2000 distance, lpattern(dash)) (lpoly dratio2010 distance,lpattern(shortdash)) if distance<=30 & rank<=25
-, ytitle(Change in log skill ratio) xtitle(distance to downtown) legend(lab(1 "1990 - 2010") lab(2 "1990 - 2000") lab(3 "2000 - 2010"))
-graphregion(color(white)) yscale(range(0 0.6)) ylabel(0(0.2)0.6);
+, ytitle(Change in log skill ratio, size(small)) xtitle(distance to downtown, size(small)) legend(lab(1 "1990 - 2010") lab(2 "1990 - 2000") lab(3 "2000 - 2010")) graphregion(color(white)) yscale(range(0 0.6)) ylabel(0(0.2)0.6) title("Figure 2. Change in Skill Ratio by Distance to Downtown", size(medium)) name(Graph_2, replace) scheme(s1color) note("{it: Notes:} The graph shows a nonparametric plot between the change in log skill ratio and census tracts'" "distances to downtowns in the top 25 most populous MSAs (defined by population ranking in 1990)." " The solid line represents the change in log skill ratios from 1990 to 2010. The long-dashed line repre-" "sents the change in log skill ratios from 1990 to 2000, and the short-dashed line represents the change" "from 2000 to 2010." "{it: Source:} The source of the data is the decennial census and ACS provided by NHGIS.");
 # delimit cr
-graph export dratio_distance_25.emf, replace
+graph export "Graph_2.jpg", replace
 
 
-
+************************
 **** Figure 4
-
+************************
 
 *** By income 1980s
 cd $data/temp_files
@@ -12160,7 +12963,7 @@ drop _merge
 drop if gisjoin==""
 
 ren gisjoin gisjoin1
-merge 1:1 gisjoin1 using $data/geographic\tract1990_tract1980_nearest.dta
+merge 1:1 gisjoin1 using tract1990_tract1980_nearest.dta
 keep if _merge==3
 drop _merge
 
@@ -12186,10 +12989,8 @@ sort downtown rank_income
 
 lab define rank 1 "1st quintile" 2 "2nd quintile" 3 "3rd quintile" 4 "4th quintile" 5 "5th quintile"
 lab value rank_income rank
-graph bar dpop_high_share if downtown==1, over(rank_income) b1title(Income rank in 1980) ytitle(Fraction of additional high-skilled residents) graphregion(color(white)) yscale(range(0 0.7)) ylabel(0(0.2)0.6)
-cd $data\graph
-graph export new_skilled_by_1980_income.png, replace
 
+graph bar dpop_high_share if downtown==1, over(rank_income, label(labsize(vsmall))) b1title(Income rank in 1980, size(small)) ytitle(Fraction of additional high-skilled residents, size(small)) graphregion(color(white)) yscale(range(0 0.7)) ylabel(0(0.2)0.6) title("Panel A. By income rank in 1980", size(medium)) name(Graph_4A, replace) scheme(s1color)
 
 *** By income 2000
 cd $data/temp_files
@@ -12216,7 +13017,7 @@ drop _merge
 drop if gisjoin==""
 
 ren gisjoin gisjoin1
-merge 1:1 gisjoin1 using $data/geographic\tract1990_tract2000_nearest.dta
+merge 1:1 gisjoin1 using tract1990_tract2000_nearest.dta
 keep if _merge==3
 drop _merge
 
@@ -12242,17 +13043,18 @@ sort downtown rank_income
 
 lab define rank 1 "1st quintile" 2 "2nd quintile" 3 "3rd quintile" 4 "4th quintile" 5 "5th quintile"
 lab value rank_income rank
-graph bar dpop_high_share if downtown==1, over(rank_income) b1title(Income rank in 2000) ytitle(Fraction of additional high-skilled residents) graphregion(color(white))  yscale(range(0 0.7)) ylabel(0(0.2)0.6)
-cd $data\graph
-graph export new_skilled_by_2000_income.png, replace
+
+graph bar dpop_high_share if downtown==1, over(rank_income, label(labsize(vsmall))) b1title(Income rank in 2000, size(small)) ytitle(Fraction of additional high-skilled residents , size(small)) graphregion(color(white))  yscale(range(0 0.7)) ylabel(0(0.2)0.6) title("Panel B. By income rank in 2000", size(medium)) name(Graph_4B, replace) scheme(s1color)
+
+graph combine Graph_4A Graph_4B, name(Graph_4, replace) cols(2) title("Figure 4. Rising Presence of High-Skilled Residents in Central Cities Occurs" "in Previously Poor Neighborhoods", size(medsmall)) imargin(tiny) scheme(s1color) ysize(6cm) xsize(9cm) note("{it: Notes:} These figures show the increase of high-skilled residents in central cities by neighborhood income quintile as a fraction" "of total increase in high-skilled residents in central cities. I use the sample of the most populous 25 MSAs. Central cities are de-" "fined as census tracts located within five miles of city centers (Holian and Kahn 2015). The purpose of the figures is to show that" "gentrification of central cities mainly occurred in neighborhoods that were previously low-income. Income ranking in panel A is" "based on income levels in 1980. Panel B is based on income levels in 2000." "{it: Sources:} The source of the data is the decennial census and ACS provided by NHGIS.")
+
+cd $data/graph
+graph export "Graph_4.jpg", replace
 
 
 *************************************+*************************************+****
 **# Output - Residential Work
 *************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
 
 
 cd $data/temp_files
@@ -12433,36 +13235,35 @@ drop _merge
 ** binscatters
 # delimit 
 binscatter ratio2010 ratio1990 [w=count1990],  
-by(high_skill) legend(lab(1 "Low skill") lab(2 "High skill"))  msymbols(O S)
-xtitle(Share of residents in central cities in 1990) ytitle(Share of residents in central cities in 2010) text(0.25 0.1 "Slope (Low-skilled) = 0.688 (0.0713)", size(medsmall))
-text(0.23 0.1008 "Slope (High-skilled) = 1.052 (0.0692)", size(medsmall)) text(0.21 0.089 "Difference = 0.364 (0.0994)", size(medsmall));
+by(high_skill) legend(lab(1 "Low skill") lab(2 "High skill") size(small))  msymbols(O S)
+xtitle(Share of residents in central cities in 1990, size(small)) ytitle(Share of residents in central cities in 2010, size(small))  text(0.25 0.1 "Slope (Low-skilled) = 0.688 (0.0713)", size(small)) title("Panel A. Residential location in 1990 and 2010", size(small)) 
+name(Graph_3A, replace) scheme(s1color)
+text(0.23 0.1008 "Slope (High-skilled) = 1.052 (0.0692)", size(small)) text(0.21 0.089 "Difference = 0.364 (0.0994)", size(small));
 # delimit cr
-graph export $data\graph\central_res_1990_2010.emf, replace
-graph export $data\graph\labeled\figure_3a.pdf, replace
+
+
 
 
 # delimit 
 binscatter ratio_emp2010 ratio_emp1990 [w=count1990],  
-by(high_skill) legend(lab(1 "Low skill") lab(2 "High skill")) msymbols(O S) 
-xtitle(Share of employment in central cities in 1994) ytitle(Share of employment in central cities in 2010) text(0.36 0.2 "Slope (Low-skilled) = 0.785 (0.054)", size(medsmall))
-text(0.335 0.205 "Slope (High-skilled) = 0.819 (0.0509)", size(medsmall)) text(0.31 0.185 "Difference = 0.0342 (0.0743)", size(medsmall));
+by(high_skill) legend(lab(1 "Low skill") lab(2 "High skill") size(small)) msymbols(O S) 
+xtitle(Share of employment in central cities in 1994, size(small)) ytitle(Share of employment in central cities in 2010, size(small)) text(0.36 0.2 "Slope (Low-skilled) = 0.785 (0.054)", size(small)) scheme(s1color) title("Panel B. Work location in 1990 and 2010", size(small)) name(Graph_3B, replace) text(0.335 0.205 "Slope (High-skilled) = 0.819 (0.0509)", size(small)) text(0.31 0.185 "Difference = 0.0342 (0.0743)", size(small));
 # delimit cr
-graph export $data\graph\central_emp_1990_2010.emf, replace
-graph export $data\graph\labeled\figure_3b.pdf, replace
 
+graph combine Graph_3A Graph_3B, name(Graph_3, replace) rows(2) title("Figure 3. Residential and Work Location Sorting by Skill", size(small)) xsize(17cm) ysize(27.94cm) scheme(s1color) note("{it: Notes:} Panel A is a binned scatterplot between the shares of residents living in central city neighborhoods in" "1990 and in 2010. Panel B is a binned scatterplot between the share of jobs located in central city locations" " in 1990 and in 2010. The sample used in each figure is divided into high- and low-skilled occupations. High-" "skilled occupations are defined as occupations in which more than 40 percent of the workers have college de-" "grees in 1990. Central cities are defined as census tracts and zip codes with centroids within five-mile radius" "of the downtown pin. I use the sample from the most populous 25 MSAs to produce these graphs. I use the" "1994 Zip Code Business Patterns (ZCBP) to approximate work location in 1990. Details are described in the" "data section. Square dots represent binned scatterplot of data in high-skilled occupations, and circle dots re-" "present binned scatterplot of data in low-skilled occu- pations. The estimated slopes and the difference in" "slopes in the underlying regressions are reported, and the robust standard errors are reported in the parentheses." "{it: Sources:} The employment data come from ZCBP at zip code level. Residential location data come from both" "IPUMS and NHGIS census data.", size(vsmall))
 
-
+graph export $data/graph/Graph_3.jpg, replace
 
 *** Job concentration in central cities (appendix figure)
 
 **
 # delimit 
 graph twoway (scatter ratio1990 ratio_emp1990  [w=count1990], msize(small) msymbol(oh)) (line ratio1990 ratio1990)
-,legend(lab(1 "Occupation")  lab(2 "45 degree line"))
-xtitle(Share of employment in central cities in 1994) ytitle(Share of residents in central cities in 1990) graphregion(color(white));
+,legend(lab(1 "Occupation")  lab(2 "45 degree line") size(medsmall)) title("Figure A9: Work and residential location in early 1990s")
+xtitle(Share of employment in central cities in 1994, size(medsmall)) ytitle(Share of residents in central cities in 1990, size(medsmall)) graphregion(color(white)) scheme(s1color) note("{it: Notes:} Residential location data come from both IPUMS and NHGIS Census data. Details are described in the data section. The employment" " data come from ZCBP at zip code level. Central cities are defined as census tracts and zip codes with centroids within a 5-miles radius of the" "downtown pin. I use the sample from the most populous 25 MSAs to produce these graphs. The redline is the 45-degree line.", size(vsmall)) ;
 # delimit cr
-graph export $data\graph\central_emp_res.emf, replace
-graph export $data\graph\labeled\figure_a9.pdf, replace
+cd $data/graph
+graph export "Graph_A9.jpg", replace
 
 cd $data/temp_files
 u temp1990, clear
@@ -12499,20 +13300,14 @@ lab define high_skill_lab 1 "High-skilled jobs" 0 "Low-skilled jobs"
 lab value fast fast_lab
 lab value high_skill high_skill_lab
 
-graph bar share, over(fast, lab(labsize(small))) over(high_skill) graphregion(color(white)) ytitle(Share of jobs in central cities (1994))
-cd $data\graph
-graph export job_central_cities.png, replace
-graph export $data\graph\labeled\figure_a11.pdf, replace
+graph bar share, over(fast, lab(labsize(small))) over(high_skill, label(labsize(vsmall))) graphregion(color(white)) scheme(s1color) ytitle(Share of jobs in central cities (1994), size(small)) title("Figure A11: Geographic concentration of jobs with rising long-hour premium in" "central cities", size(medsmall)) name(Graph_A11, replace) note("{it: Notes:} The figure shows the shares of jobs located in central cities based on data from the 1994 Zip Code Business Patterns. Central city" "neighborhoods are defined as census tracts within 5 miles of downtowns. The sample is the most populous 25 MSAs. I divide occupations" "into low- and high-skilled jobs. Occupations with greater than 40% of the workers having college degree are categorized as high-skilled." "Within each skill category, I further categorize occupations based on the change in long-hour premium between 1990 and 2010. 37 occu-" "pations included as high-skilled and ΔLHP>=0.005; 47 occupations included as high-skilled and ΔLHP<0.005; 123 occupations included" "as low-skilled and ΔLHP>=0.005; 134 occupations included as low-skilled and ΔLHP<0.005. The total number of occupations is greater" "than those included in the model analysis, because some occupations shown in this graph cannot be merged with residential location data" "used for model analysis.", size(vsmall))
+cd $data/graph
+graph export Graph_A11.jpg, replace
 
 
-*************************************+*************************************+****
-**# Appendix - Wage Decile
-*************************************+*************************************+****
-
-
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
+**# Output - Wage Decile
+*************************************+*************************************+***
 
 
 cd $data/ipums_micro
@@ -12594,32 +13389,33 @@ by wage_tile: g dg10=greaterthan50-greaterthan50[_n-1]
 by wage_tile: g dg20=greaterthan50-greaterthan50[_n-2]
 by wage_tile: g dg30=greaterthan50-greaterthan50[_n-3]
 
-*** Main figure
-   cd $data\graph\
+************************ 
+*** Tabla 5-A
+************************ 
+   cd $data/graph
  
  # delimit 
- graph twoway (bar dg30 wage_tile if year==2010, msymbol(O) ) 
- , graphregion(color(white)) xtitle(Wage decile) ytitle(Change in prob of working >=50 hrs/week)
- xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) saving(dgreaterthan50_wage_tile, replace);
+graph twoway (bar dg30 wage_tile if year==2010, msymbol(O) ) 
+ , graphregion(color(white)) xtitle(Wage decile, size(medsmall)) ytitle(Change in prob of working >=50 hrs/week, size(medsmall))
+ xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) saving(dgreaterthan50_wage_tile, replace) scheme(s1color) name(Graph_5A, replace) title("Panel A. Higher-wage workers more likely" "to work long hours", size(medsmall)) ;
  # delimit cr
  
- graph export dgreaterthan50_wage_tile.emf, replace
  
 ** Appendix figure
 
-    cd $data\graph\
+    cd $data/graph
  
  # delimit 
  graph twoway (bar dg20 wage_tile if year==2000, msymbol(O) ) 
- , graphregion(color(white)) xtitle(Wage decile) ytitle(Change in prob of working >=50 hrs/week)
+ , graphregion(color(white)) xtitle(Wage decile, size(medsmall)) ytitle(Change in prob of working >=50 hrs/week, size(medsmall)) scheme(s1color) title("")
  xscale(range(1 10)) xlabel(1(1)10);
  # delimit cr
  
 
- graph export dgreaterthan50_wage_tile1980_2000.emf, replace
+ *graph export dgreaterthan50_wage_tile1980_2000.emf, replace
  
  
-     cd $data\graph\
+     cd $data/graph
  
  # delimit 
  graph twoway (bar dg10 wage_tile if year==2010, msymbol(O) ) 
@@ -12628,7 +13424,7 @@ by wage_tile: g dg30=greaterthan50-greaterthan50[_n-3]
  # delimit cr
  
 
- graph export dgreaterthan50_wage_tile2000_2010.emf, replace
+*graph export dgreaterthan50_wage_tile2000_2010.emf, replace
  
  
  *****************************
@@ -12717,21 +13513,28 @@ append using commute_tile_1990_2010
 
 sort wage_tile year
  
- by wage_tile: g dln_trantime_10 = ln_trantime-ln_trantime[_n-1]
+by wage_tile: g dln_trantime_10 = ln_trantime-ln_trantime[_n-1]
 
- **Main Figure
- by wage_tile: g dln_trantime_30 = ln_trantime-ln_trantime[_n-3]
+by wage_tile: g dln_trantime_30 = ln_trantime-ln_trantime[_n-3]
+
+************************ 
+*** Tabla 5-B
+************************ 
+  
+ 
   # delimit 
  graph twoway (bar dln_trantime_30 wage_tile if year==2010, msymbol(O) ) 
- , graphregion(color(white)) xtitle(Wage decile) ytitle(Change in mean log commute time)
- xscale(range(1 10)) xlabel(1(1)10) yscale(range(0.00 0.15)) ylabel(0(0.04)0.16) saving(ln_trantime_rank25_1980_2010, replace);
+ , graphregion(color(white)) xtitle(Wage decile, size(medsmall)) ytitle(Change in mean log commute time, size(medsmall)) scheme(s1color)
+ xscale(range(1 10)) xlabel(1(1)10) yscale(range(0.00 0.15)) ylabel(0(0.04)0.16) saving(ln_trantime_rank25_1980_2010, replace) name(Graph_5B, replace) title("Panel B. Growth in commute time slower" "for higher-wage workers", size(medsmall));
  # delimit cr
- 
- graph export ln_trantime_rank25_1980_2010.png, replace
- 
+
+graph combine Graph_5A Graph_5B, name(Graph_5, replace) title("Figure 5. Changing Working Hours and Commute Time by Wage Decile (1980–2010)", size(medsmall)) scheme(s1color) note("{it: Notes:} In panel A, I compute the change in percent of workers of working at least 50 hours per week. The sample I use includes workers who are between 25" "and 65 years of age, males, and working at least 30 hours per week. I include only males in the sample to ensure that the changing female labor force partici-" "pation does not distort the sta- tistics. In panel B, I compute the change in log commute time reported in the census/ACS data. The sample includes workers" "who are between 25 and 65 years of age, males, working at least 30 hours per week, and living in the most populous 25 MSAs in the United States." "{it: Sources:} The data come from IPUMS decennial census and ACS data in 1980 and 2010 (2007–2011 ACS).", size(vsmall))
+
+cd $data/graph
+graph export "Graph_5.jpg", replace
  
  *** Appendix figures
-   cd $data\graph\
+   cd $data/graph
  # delimit 
  graph twoway (bar dln_trantime_10 wage_tile if year==2010, msymbol(O) ) 
  , graphregion(color(white)) xtitle(Wage decile) ytitle(Change in mean log commute time)
@@ -12741,7 +13544,7 @@ sort wage_tile year
 
 
 by wage_tile: g dln_trantime_20 = ln_trantime-ln_trantime[_n-2]
-   cd $data\graph\
+   cd $data/graph
  # delimit 
  graph twoway (bar dln_trantime_20 wage_tile if year==2000, msymbol(O) ) 
  , graphregion(color(white)) xtitle(Wage decile) ytitle(Change in mean log commute time)
@@ -12750,17 +13553,13 @@ by wage_tile: g dln_trantime_20 = ln_trantime-ln_trantime[_n-2]
   graph export ln_trantime_rank25_1980_2000.png, replace
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output -  Figure CPS
-*************************************+*************************************+****
-
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
 *************************
 ** Hours definition changes before and after 1976. 
-cd $data\cps
+cd $data/cps
 u cps_hours_annual, clear
 keep if sex==1
 keep if age<=65 & age>=25
@@ -12781,7 +13580,7 @@ cd $data/temp_files
 save temp, replace
 
 *** 1962 to 1976
-cd $data\cps
+cd $data/cps
 u cps_hours, clear
 keep if sex==1
 keep if age<=65 & age>=25
@@ -12823,7 +13622,7 @@ g year=`num'
 save temp_year`num'_g50, replace
 }
 
-clear all
+clear
 foreach num of numlist 1962(1)2015 {
 append using temp_year`num'_g50
 }
@@ -12831,11 +13630,10 @@ append using temp_year`num'_g50
 
 # delimit 
 graph twoway (connected greaterthan50 year if wage_tile==10, msymbol(diamond) msize(small)) (connected greaterthan50 year if wage_tile==1, msize(small))
-,yscale(range(0.1 0.6)) ylabel(0.1(0.2)0.6) xlabel(1960(10)2015) graphregion(color(white)) 
-xtitle(year) ytitle(Percentage of working >=50 hrs/week) legend(lab(1 "Percent of working long-hour (Top wage decile)") lab(2 "Percent of working long-hour (Bottom wage decile)") col(1)) ;
+,yscale(range(0.1 0.6)) ylabel(0.1(0.2)0.6) xlabel(1960(10)2015) graphregion(color(white)) name("Graph_A4", replace) xtitle(year, size(small)) ytitle(Percentage of working >=50 hrs/week, size(small)) legend(lab(1 "Percent of working long-hour (Top wage decile)") lab(2 "Percent of working long-hour (Bottom wage decile)" ) col(1) size(small)) scheme(s1color) title("Figure A4: The evolution of long-hour working", size(medsmall)) note("{it: Notes:} I plot the probability of working at least 50 hours a week using the CPS ASEC data from 1968 to 2016." "The sample includes workers that are male, between age 25 and 65 and work at least 30 hours per week. I plot" "the probability of working long hours for workers in the top wage decile and the bottom wage decile over time." "To smooth the plotted curve, each dot represents a three-year moving average.", size(small));
 # delimit cr
 
-graph export $data\graph\hour_trend_1962_2016.png, replace
+graph export $data/graph/Graph_A4.jpg, replace
 
 
   
@@ -12849,7 +13647,7 @@ graph export $data\graph\hour_trend_1962_2016.png, replace
 
 /* Se optimiza el proceso realizando un loop para que sea más eficiente las líneas de código*/
 
-clear all
+clear
 
 ** Ingreso para 1980, 1990, 2000 y 2010:
 cd $data/temp_files
@@ -12917,7 +13715,7 @@ graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(d
  xtitle(distancia al centro (milla)) ytitle(Quintil de Ingreso) scheme(s1color)
  ;
  # delimit cr
- graph export chicago_income_quitile_distance.emf, replace
+ *graph export chicago_income_quitile_distance.emf, replace
  
  
  # delimit 
@@ -12929,7 +13727,7 @@ graph twoway (lpoly rank_income distance if distance<=30 & year==1980,lpattern(d
  xtitle(distancia al centro (milla)) ytitle(Quintil de Ingreso) scheme(s1color)
  ;
  # delimit cr
-  graph export ny_income_quitile_distance.emf, replace
+  *graph export ny_income_quitile_distance.emf, replace
 
 
  *************************************+*************************************+***
@@ -13000,14 +13798,9 @@ foreach i of local x{
 /* Se genera loop para optimizar el proceso y se describe que se hace. En estas es posible ver para cada tract como se ve el cambio en el ranking de ingresos en ambas ciudades. Como sugerencia se podría pintar el centro de un color para que así se sepa cuales son las mayores distancia y menores distancias. Esto podría ayudar al lector a comprender mejor la motivación. */
 
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output - LHP
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
-
-
+*************************************+*************************************+***
 
 *** Financial specialists
 cd $data/ipums_micro
@@ -13051,13 +13844,14 @@ replace inctot_real_res=inctot_real_res-r(mean) if year==1990
 sum inctot_real_res [w=perwt] if hours2010_res<=42 & hours2010_res>=38
 replace inctot_real_res=inctot_real_res-r(mean) if year==2010
 
-cd $data\graph\
+cd $data/graph
+
 # delimit
 graph twoway (lpoly inctot_real_res hours1990_res [w=perwt] if year==1990 & hours1990_res>=38 & hours1990_res<=60, lpattern(solid) bwidth(2.5)) 
 (lpoly inctot_real_res hours2010_res [w=perwt] if year==2010 & hours2010_res>=38 & hours2010_res<=60, lpattern(dash) bwidth(2.5)), graphregion(color(white))
-legend(lab(1 "1990") lab(2 "2010")) xtitle(Weekly hours worked) ytitle(Weekly real log earnings) xscale(range(40 60))  yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60);
+legend(lab(1 "1990") lab(2 "2010") size(small)) xtitle(Weekly hours worked, size(small)) ytitle(Weekly real log earnings, size(small)) xscale(range(40 60))  yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60) scheme(s1color) title("a) Financial specialists", size(small)) name(Graph_A10A, replace);
 # delimit cr
-graph export financial_log_earnings.emf, replace
+
 
 
 ***
@@ -13103,13 +13897,13 @@ replace inctot_real_res=inctot_real_res-r(mean) if year==1990
 sum inctot_real_res if hours2010_res<=42 & hours2010_res>=38
 replace inctot_real_res=inctot_real_res-r(mean) if year==2010
 
-cd $data\graph
+cd $data/graph
 # delimit
 graph twoway (lpoly inctot_real_res hours1990_res [w=perwt] if year==1990 & hours1990_res>=38 & hours1990_res<=60, lpattern(solid) bwidth(2.5)) 
 (lpoly inctot_real_res hours2010_res [w=perwt] if year==2010 & hours2010_res>=38 & hours2010_res<=60, lpattern(dash) bwidth(2.5)), graphregion(color(white))
-legend(lab(1 "1990") lab(2 "2010")) xtitle(Weekly hours worked) ytitle(Weekly real log earnings) xscale(range(40 60)) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60);
+legend(lab(1 "1990") lab(2 "2010") size(small)) xtitle(Weekly hours worked, size(small)) ytitle(Weekly real log earnings, size(small)) xscale(range(40 60)) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60) title("b) Lawyer", size(small)) name(Graph_A10B, replace) scheme(s1color);
 # delimit cr
-graph export lawyer_log_earnings.emf, replace
+
 
 ***
 **** Office administrator
@@ -13154,13 +13948,13 @@ replace inctot_real_res=inctot_real_res-r(mean) if year==1990
 sum inctot_real_res  [w=perwt] if hours2010_res<=42 & hours2010_res>=38
 replace inctot_real_res=inctot_real_res-r(mean) if year==2010
 
-cd $data\graph
+cd $data/graph
 # delimit
 graph twoway (lpoly inctot_real_res hours1990_res [w=perwt] if year==1990 & hours1990_res>=38 & hours1990_res<=60, lpattern(solid) bwidth(2.5)) 
 (lpoly inctot_real_res hours2010_res [w=perwt] if year==2010 & hours2010_res>=38 & hours2010_res<=60, lpattern(dash) bwidth(2.5)), graphregion(color(white))
-legend(lab(1 "1990") lab(2 "2010")) xtitle(Weekly hours worked) ytitle(Weekly real log earnings) xscale(range(40 60) ) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60);
+legend(lab(1 "1990") lab(2 "2010") size(small)) xtitle(Weekly hours worked, size(small)) ytitle(Weekly real log earnings, size(small)) xscale(range(40 60) ) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60) title("c) Secretaries and administrative assistants", size(small)) name(Graph_A10C, replace) scheme(s1color);
 # delimit cr
-graph export office_log_earnings.emf, replace
+
 
 **** Teacher
 cd $data/ipums_micro
@@ -13204,26 +13998,23 @@ replace inctot_real_res=inctot_real_res-r(mean) if year==1990
 sum inctot_real_res [w=perwt] if hours2010_res<=42 & hours2010_res>=38
 replace inctot_real_res=inctot_real_res-r(mean) if year==2010
 
-cd $data\graph
+cd $data/graph
 # delimit
 graph twoway (lpoly inctot_real_res hours1990_res [w=perwt] if year==1990 & hours1990_res>=38 & hours1990_res<=60, lpattern(solid) bwidth(2.5)) 
 (lpoly inctot_real_res hours2010_res [w=perwt] if year==2010 & hours2010_res>=38 & hours2010_res<=60, lpattern(dash) bwidth(2.5)), graphregion(color(white))
-legend(lab(1 "1990") lab(2 "2010")) xtitle(Weekly hours worked) ytitle(Weekly real log earnings) xscale(range(40 60) ) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60);
+legend(lab(1 "1990") lab(2 "2010") size(small)) xtitle(Weekly hours worked, size(small)) ytitle(Weekly real log earnings, size(small)) xscale(range(40 60) ) yscale(range(0 0.5)) ylabel(0(0.1)0.5) xlabel(40(5)60) title("d) Teachers", size(small)) name(Graph_A10D, replace) scheme(s1color);
 # delimit cr
-graph export teacher_log_earnings.emf, replace
 
+graph combine Graph_A10A Graph_A10B Graph_A10C Graph_A10D, name(Graph_A10, replace) scheme(s1color) title("Figure A10: Residual log weekly earnings against weekly hours worked", size(small)) note("{it: Notes:} All samples come from Census data in IPUMS. ACS 2007-2011 is used for year 2010. The variables used" "in the plots are residual values after being regressed on individual level control variables (age, sex, race, education," "industry code). The residual log earnings are normalized by constants such that the values in 1990 and 2010 start" "out from zero to help visual contrast. I categorize several occupations into financial specialists. Financial specialists" "(a) include financial managers (occ2010: 120), accountants and auditors (occ2010: 800), and securities, commodi-" "ties, and financial services sales agents (occ2010: 4820). Teachers include elementary school teachers (occ2010:" "2310) and secondary school teachers (occ2010:2320). The plot is the kernel-weighted local polynomial smoothing" "curve, with bandwidth equals 2.5, and Epanechnikov kernel function.", size(vsmall)) xsize(14.1cm) ysize(17cm)
 
-******
+graph export "Graph_A10.jpg", replace
 
-*************************************+*************************************+****
+*************************************+*************************************+***
 **# Output - Exogenity Figure
-*************************************+*************************************+****
-
-clear all
-global data="C:\Users\alen_su\Dropbox\paper_folder\replication\data"
+*************************************+*************************************+***
 
 
-*** Plot the change in commute time by skill content
+*** Figure A18, b: Plot the change in commute time by skill content
 
 cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
@@ -13276,14 +14067,15 @@ drop greaterthan501990 greaterthan502010 trantime2010 trantime1990
 
 label define college_lab 0 "No College" 1 "College"
 label value college college_lab
- cd $data\graph\
+
+cd $data/graph
   # delimit 
- graph bar dtrantime  , over(college)  graphregion(color(white))  ytitle(Change in mean log commute time);
+ graph bar dtrantime  , over(college, lab(labsize(small)))  graphregion(color(white))  ytitle(Change in mean log commute time, size(small)) scheme(s1color) name(Graph_A18B, replace) title("b) Commuting time", size(small));
  # delimit cr
- graph export dtrantime_college.png, replace
 
 
-*** Plot the change in incidence of work long hours by skill content
+
+*** Figure A18, a: Plot the change in incidence of work long hours by skill content
 
 cd $data/ipums_micro
 u 1990_2000_2010_temp , clear
@@ -13335,14 +14127,19 @@ drop greaterthan501990 greaterthan502010 trantime2010 trantime1990
 
 label define college_lab 0 "No College" 1 "College"
 label value college college_lab
- cd $data\graph
+
+
+ cd $data/graph
   # delimit 
- graph bar ln_d  , over(college)  graphregion(color(white))  ytitle(Change in prob of working >=50 hrs/week);
+ graph bar ln_d  , over(college, lab(labsize(small)))  graphregion(color(white))  ytitle(Change in prob of working >=50 hrs/week, size(small)) scheme(s1color) name(Graph_A18A, replace) title("a) Working long hours", size(small));
  # delimit cr
- graph export ln_d_college.png, replace
+
+graph combine Graph_A18A Graph_A18B, name(Graph_A18, replace) scheme(s1color) title("Figure A18: Changing incidence of working long hours and changing commuting time by" "college attainment", size(medsmall)) note("{it: Notes:} The data come from IPUMS census data in 1980 and 2010 (2007-2011 ACS). In a), I compute the change in probability" "of working at least 50 hours per week by education attainment. The sample I use includes workers that are between 25 and 65" "of age, males, and working at least 30 hours per week. I include only male in the sample to ensure that the changing female la-" "bor force participation does not distort the statistics. In b), I compute the change in log commute time reported in the Census/" "ACS data. The sample includes workers that are between 25 and 65 of age, males, working at least 30 hours per week and li-" "ving in the most populous 25 MSAs in the US.", size(small)) ysize(6cm) xsize(9cm)
+
+graph export "Graph_A18.jpg", replace
  
 
-*** Wage decile and changing incidence of working long
+*** Figure A17: Wage decile and changing incidence of working long
 
 
 *** Generate change in long hour incidence by group
@@ -13406,18 +14203,21 @@ by wage_tile downtown: g dg=greaterthan50-greaterthan50[_n-1]
 by wage_tile downtown: g ln_dg=ln(greaterthan50)-ln(greaterthan50[_n-1])
 
  
-   cd $data\graph
+cd $data/graph
  
  # delimit 
  graph twoway (bar dg wage_tile if year==2010, msymbol(O) ) 
- if downtown==1, graphregion(color(white)) xtitle(Wage decile) ytitle(Change in prob of working >=50 hrs/week)
- xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) ;
+ if downtown==1, graphregion(color(white)) xtitle(Wage decile, size(small)) ytitle(Change in prob of working >=50 hrs/week, size(small)) 
+ xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) scheme(s1color) title("a) Central Cities", size(small)) name(Graph_A17A, replace);
  # delimit cr
-  graph export dgreaterthan50_wage_tile_downtown.emf, replace
+
  
   # delimit 
  graph twoway (bar dg wage_tile if year==2010, msymbol(O) ) 
- if downtown==0, graphregion(color(white)) xtitle(Wage decile) ytitle(Change in prob of working >=50 hrs/week)
- xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) ;
+ if downtown==0, graphregion(color(white)) xtitle(Wage decile, size(small)) ytitle(Change in prob of working >=50 hrs/week, size(small))
+ xscale(range(1 10)) xlabel(1(1)10) legend(lab(1 "1980") lab(2 "2010")) scheme(s1color) title("b) Suburbs", size(small)) name(Graph_A17B, replace);
  # delimit cr
- graph export dgreaterthan50_wage_tile_suburbs.emf, replace
+
+graph combine Graph_A17A Graph_A17B, name(Graph_A17, replace) scheme(s1color) title("Figure A17: Changing incidence of working long hours by wage decile (1980-2010)", size(medsmall)) note("{it: Notes:} The data come from IPUMS census data in 1980 and 2010 (2007-2011 ACS). I compute the change in the probability of" "working at least 50 hours per week by wage decile for workers living in central cities vs. the suburbs. The sample I use includes"  "workers that are between 25 and 65 of age, males, and working at least 30 hours per week. I include only male in the sample to" "ensure that the changing female labor force participation does not distort the statistics. In a), I include only the sample of work-" "ers who live in central city neighborhoods (5 miles within downtowns). In b), I include only the sample of workers who live out-" "side of central city neighborhoods. Wage deciles are assigned by using a national wage ranking.", size(small)) ysize(6cm) xsize(9cm)
+
+graph export "Graph_A17.jpg", replace
